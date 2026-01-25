@@ -28,7 +28,6 @@ export class BookingComponent implements OnInit {
   private refreshBookings$ = new BehaviorSubject<void>(undefined);
   private error$ = new BehaviorSubject<string>('');
 
-  // UI State behavior subject for reactive updates
   private state$ = new BehaviorSubject<BookingState>({
     step: 'list',
     localLoading: false,
@@ -60,46 +59,48 @@ export class BookingComponent implements OnInit {
   ) {
     this.initializeForms();
 
-    // 0. Shared passenger profile stream
     this.passengerProfile$ = this.auth.currentUser$.pipe(
       filter(u => !!u),
+      tap(u => {
+        if (u) {
+          this.bookingForm.patchValue({
+            name: u.fullName,
+            email: u.email
+          });
+        }
+      }),
       map(u => u!.username),
       distinctUntilChanged(),
       switchMap(username => this.passengerService.getPassengerByUsername(username).pipe(
         tap(p => {
-          if (p && !this.bookingForm.get('passengerId')?.value) {
-            this.bookingForm.patchValue({ passengerId: p.id });
+          if (p) {
+            this.bookingForm.patchValue({
+              passengerId: p.id,
+              name: p.name,
+              email: p.email
+            });
           }
         }),
-        catchError(err => {
-          console.error('Profile Load Crash:', err);
-          return of(null);
-        })
+        catchError(() => of(null))
       )),
       shareReplay(1)
     );
 
-    // 1. Load Bookings stream
     const bookings$ = combineLatest([this.passengerProfile$, this.refreshBookings$]).pipe(
-      filter(([p]) => !!p),
       switchMap(([passenger]) => {
-        return this.bookingService.getBookings(passenger!.id).pipe(
-          catchError(err => {
-            console.error('History API error:', err);
-            return of([]);
-          })
+        if (!passenger) return of([]);
+        return this.bookingService.getBookings(passenger.id).pipe(
+          catchError(() => of([]))
         );
       }),
       startWith([])
     );
 
-    // 2. Load Flights
     const flights$ = this.flightService.getAllFlights().pipe(
       catchError(() => of([])),
       startWith([])
     );
 
-    // 3. Combined View Model (Includes ALL UI state for guaranteed synchronization)
     this.vm$ = combineLatest([
       bookings$,
       flights$,
@@ -139,7 +140,7 @@ export class BookingComponent implements OnInit {
 
   initializeForms() {
     this.bookingForm = this.fb.group({
-      passengerId: ['', Validators.required],
+      passengerId: [''],
       flightId: ['', Validators.required],
       seats: [1, [Validators.required, Validators.min(1)]],
       name: ['', Validators.required],
@@ -152,7 +153,6 @@ export class BookingComponent implements OnInit {
     });
   }
 
-  // Helper to update UI state reactively
   public updateState(partial: Partial<BookingState>) {
     this.state$.next({ ...this.state$.value, ...partial });
   }
@@ -170,25 +170,31 @@ export class BookingComponent implements OnInit {
 
     this.updateState({ localLoading: true });
     this.error$.next('');
-    const booking: BookingRequest = this.bookingForm.value;
 
-    this.bookingService.bookFlight(booking).subscribe({
-      next: (result: Booking) => {
-        this.paymentForm.patchValue({ amount: result.totalAmount });
-        // Update all UI state immediately - guaranteed to refresh view via vm$
-        this.updateState({
-          step: 'payment',
-          localLoading: false,
-          bookingResult: result
-        });
-        console.log('Ticket linking successful, UI switched to payment step.');
-      },
-      error: (err) => {
-        console.error('Ticket failed:', err);
-        this.error$.next(err?.error?.message || 'Server rejected the traveler details.');
-        this.updateState({ localLoading: false });
-      }
-    });
+    // Merge form values with current username
+    this.auth.currentUser$.subscribe(user => {
+      if (!user) return;
+
+      const booking: BookingRequest = {
+        ...this.bookingForm.value,
+        username: user.username
+      };
+
+      this.bookingService.bookFlight(booking).subscribe({
+        next: (result: Booking) => {
+          this.paymentForm.patchValue({ amount: result.totalAmount });
+          this.updateState({
+            step: 'payment',
+            localLoading: false,
+            bookingResult: result
+          });
+        },
+        error: (err) => {
+          this.error$.next(err?.error?.message || 'Server rejected the traveler details.');
+          this.updateState({ localLoading: false });
+        }
+      });
+    }).unsubscribe();
   }
 
   makePayment() {

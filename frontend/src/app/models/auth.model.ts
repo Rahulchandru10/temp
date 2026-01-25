@@ -18,6 +18,8 @@ export interface LoginResponse {
 export interface AuthPayload {
   userId: number;
   username: string;
+  email: string;
+  fullName: string;
   role: 'ADMIN' | 'CUSTOMER';
   iat: number;
   exp: number;

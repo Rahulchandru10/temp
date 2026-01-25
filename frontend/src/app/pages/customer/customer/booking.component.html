@@ -6,41 +6,45 @@
   <ng-container *ngIf="vm$ | async as vm">
     <div class="error-alert" *ngIf="vm.error">{{ vm.error }}</div>
 
-    <!-- Always visible: My Bookings History List -->
-    <div class="bookings-list-section" *ngIf="vm.passengerId">
-      <h3>My Travel History</h3>
-      <div class="loading" *ngIf="vm.loading && vm.myBookings.length === 0">Syncing with history...</div>
-
-      <div class="bookings-grid" *ngIf="vm.myBookings.length > 0">
-        <div class="booking-card" *ngFor="let b of vm.myBookings">
-          <div class="booking-header">
-            <span class="booking-id">#{{ b.id }}</span>
-            <span class="status-badge" [class.confirmed]="b.status === 'CONFIRMED'">{{ b.status }}</span>
-          </div>
-          <div class="flight-details">
-            <div class="route" *ngIf="b.flight">
-              <strong>{{ b.flight.source }}</strong> → <strong>{{ b.flight.destination }}</strong>
-            </div>
-            <div class="time" *ngIf="b.flight">{{ b.flight.departureTime | date: 'medium' }}</div>
-            <div class="seats">Seats: {{ b.seatsBooked }}</div>
-          </div>
-          <div class="amount">Total: ${{ b.totalAmount }}</div>
-        </div>
-      </div>
-
-      <div class="no-data" *ngIf="!vm.loading && vm.myBookings.length === 0">
-        No bookings found. Start your journey below!
-      </div>
-    </div>
-
-    <hr class="divider" *ngIf="vm.passengerId" />
-
-    <!-- Current Action View -->
-    <div class="dashboard-view" *ngIf="vm.passengerId">
+    <!-- Always visible dashboard section -->
+    <div class="dashboard-view">
 
       <!-- STEP 1: Main List (Rest state) -->
       <div class="action-section" *ngIf="vm.step === 'list'">
-        <button class="btn-primary btn-lg" (click)="startNewBooking()">+ New Flight Booking</button>
+
+        <!-- Show history if profile exists -->
+        <div class="bookings-list-section" *ngIf="vm.passengerId">
+          <h3>My Travel History</h3>
+          <div class="bookings-grid" *ngIf="vm.myBookings.length > 0">
+            <div class="booking-card" *ngFor="let b of vm.myBookings">
+              <div class="booking-header">
+                <span class="booking-id">#{{ b.id }}</span>
+                <span class="status-badge" [class.confirmed]="b.status === 'CONFIRMED'">{{ b.status }}</span>
+              </div>
+              <div class="flight-details">
+                <div class="route" *ngIf="b.flight">
+                  <strong>{{ b.flight.source }}</strong> → <strong>{{ b.flight.destination }}</strong>
+                </div>
+                <div class="time" *ngIf="b.flight">{{ b.flight.departureTime | date: 'medium' }}</div>
+                <div class="seats">Seats: {{ b.seatsBooked }}</div>
+              </div>
+              <div class="amount">Total: ${{ b.totalAmount }}</div>
+            </div>
+          </div>
+          <div class="no-data" *ngIf="vm.myBookings.length === 0">
+            No bookings found yet.
+          </div>
+          <hr class="divider" />
+        </div>
+
+        <div class="welcome-section" *ngIf="!vm.passengerId" style="text-align: center; padding: 2rem;">
+          <h3>Welcome to Airline Management</h3>
+          <p style="color: #a0a0b0;">You haven't made any bookings yet. Ready for your first trip?</p>
+        </div>
+
+        <div style="text-align: center; margin-top: 1rem;">
+          <button class="btn-primary btn-lg" (click)="startNewBooking()">+ New Flight Booking</button>
+        </div>
       </div>
 
       <!-- STEP 2: Booking Details Input -->
@@ -119,9 +123,9 @@
       </div>
     </div>
 
-    <!-- Initial Loading State -->
+    <!-- Initial Loading State (Optional status indicator) -->
     <div class="loading-overlay" *ngIf="!vm.passengerId && vm.loading">
-      <p>Fetching your travel profile...</p>
+      <p>Synchronizing your account...</p>
     </div>
   </ng-container>
 </div>

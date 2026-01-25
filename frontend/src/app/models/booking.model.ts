@@ -11,7 +11,8 @@ export interface Booking {
 }
 
 export interface BookingRequest {
-  passengerId: number;
+  passengerId?: number;
+  username: string;
   flightId: number;
   seats: number;
   name: string;
