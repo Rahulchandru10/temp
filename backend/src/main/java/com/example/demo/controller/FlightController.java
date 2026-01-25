@@ -36,8 +36,31 @@ public class FlightController {
     // ---------------- ADMIN ----------------
 
     @PostMapping("/admin/create/flights")
-    public Flight createFlight(@RequestBody Flight flight) {
+    public Flight createFlight(@RequestBody com.example.demo.dto.FlightRequest request) {
+        Flight flight = new Flight();
+        mapRequestToEntity(request, flight);
         return flightRepo.save(flight);
+    }
+
+    @PutMapping("/admin/flights/{id}")
+    public Flight updateFlight(@PathVariable Long id, @RequestBody com.example.demo.dto.FlightRequest request) {
+        Flight flight = flightRepo.findById(id).orElseThrow();
+        mapRequestToEntity(request, flight);
+        return flightRepo.save(flight);
+    }
+
+    private void mapRequestToEntity(com.example.demo.dto.FlightRequest request, Flight flight) {
+        flight.setFlightNumber(request.getFlightNumber());
+        flight.setSource(request.getSource());
+        flight.setDestination(request.getDestination());
+        flight.setDepartureTime(request.getDepartureTime());
+        flight.setArrivalTime(request.getArrivalTime());
+        flight.setPrice(request.getPrice());
+
+        if (request.getAircraftId() != null) {
+            Aircraft aircraft = aircraftRepo.findById(request.getAircraftId()).orElseThrow();
+            flight.setAircraft(aircraft);
+        }
     }
 
     @GetMapping("/admin/flights")
