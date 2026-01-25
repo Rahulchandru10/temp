@@ -1,0 +1,108 @@
+<div class="container">
+  <div class="header-section">
+    <h2>Flight Management</h2>
+    <button class="btn-primary" (click)="openForm()" *ngIf="!showForm">
+      + Add Flight
+    </button>
+  </div>
+
+  <div class="error-alert" *ngIf="error">{{ error }}</div>
+
+  <!-- Form -->
+  <div class="form-section" *ngIf="showForm">
+    <div class="form-card">
+      <h3>{{ editingId ? 'Edit Flight' : 'Add New Flight' }}</h3>
+      <form [formGroup]="flightForm" (ngSubmit)="onSubmit()">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Flight Number</label>
+            <input formControlName="flightNumber" type="text" class="form-control" />
+          </div>
+          <div class="form-group">
+            <label>Source</label>
+            <input formControlName="source" type="text" class="form-control" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Destination</label>
+            <input formControlName="destination" type="text" class="form-control" />
+          </div>
+          <div class="form-group">
+            <label>Price</label>
+            <input formControlName="price" type="number" class="form-control" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Departure Time</label>
+            <input formControlName="departureTime" type="datetime-local" class="form-control" />
+          </div>
+          <div class="form-group">
+            <label>Arrival Time</label>
+            <input formControlName="arrivalTime" type="datetime-local" class="form-control" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Aircraft</label>
+          <select formControlName="aircraftId" class="form-control">
+            <option value="">Select Aircraft</option>
+            <option *ngFor="let ac of aircraft$ | async" [value]="ac.id">{{ ac.name }} ({{ ac.model }})</option>
+          </select>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-primary" [disabled]="flightForm.invalid">
+            {{ editingId ? 'Update' : 'Create' }}
+          </button>
+          <button type="button" class="btn-secondary" (click)="closeForm()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-section">
+    <ng-container *ngIf="flights$ | async as flightList; else loadingTpl">
+      <table class="table" *ngIf="flightList.length > 0">
+        <thead>
+          <tr>
+            <th>Flight #</th>
+            <th>Route</th>
+            <th>Departure</th>
+            <th>Arrival</th>
+            <th>Price</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let flight of flightList">
+            <td>{{ flight.flightNumber }}</td>
+            <td>{{ flight.source }} → {{ flight.destination }}</td>
+            <td>{{ flight.departureTime | date: 'short' }}</td>
+            <td>{{ flight.arrivalTime | date: 'short' }}</td>
+            <td>${{ flight.price }}</td>
+            <td><span class="badge" [class.flight-ready]="flight.status === 'READY'"
+                [class.flight-not-ready]="flight.status === 'NOT READY'">
+                {{ flight.status }}
+              </span></td>
+            <td>
+              <button class="btn-sm btn-edit" (click)="edit(flight)">Edit</button>
+              <button class="btn-sm btn-delete" (click)="delete(flight.id)">Delete</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="no-data" *ngIf="flightList.length === 0">
+        No flights added. Create your first flight!
+      </div>
+    </ng-container>
+    <ng-template #loadingTpl>
+      <div class="loading">Loading...</div>
+    </ng-template>
+  </div>
+</div>

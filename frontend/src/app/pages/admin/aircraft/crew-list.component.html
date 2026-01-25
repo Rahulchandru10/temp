@@ -1,0 +1,102 @@
+<div class="container">
+  <div class="header-section">
+    <h2>Crew Management</h2>
+    <button class="btn-primary" (click)="openForm()" *ngIf="!showForm">
+      + Add Crew Member
+    </button>
+  </div>
+
+  <!-- Form -->
+  <div class="form-section" *ngIf="showForm">
+    <div class="form-card">
+      <h3>Add New Crew Member</h3>
+      <form [formGroup]="crewForm" (ngSubmit)="onSubmit()">
+        <div class="form-group">
+          <label>Name</label>
+          <input formControlName="name" type="text" class="form-control" />
+        </div>
+        <div class="form-group">
+          <label>Role</label>
+          <select formControlName="role" class="form-control">
+            <option value="">Select Role</option>
+            <option value="CAPTAIN">Captain</option>
+            <option value="FIRST_OFFICER">First Officer</option>
+            <option value="FLIGHT_ENGINEER">Flight Engineer</option>
+            <option value="FLIGHT_ATTENDANT">Flight Attendant</option>
+          </select>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-primary" [disabled]="crewForm.invalid">Add Crew</button>
+          <button type="button" class="btn-secondary" (click)="closeForm()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Reactive View Container -->
+  <ng-container *ngIf="vm$ | async as vm">
+    <!-- Loading State -->
+    <div class="loading" *ngIf="vm.loading">
+      <div class="spinner"></div>
+      <p>Updating crew data...</p>
+    </div>
+
+    <!-- Data State -->
+    <div class="table-section-wrapper" *ngIf="!vm.loading">
+      <div class="crew-grid" *ngIf="vm.total > 0">
+        <!-- Available Crews -->
+        <div class="crew-category">
+          <div class="category-header">
+            <h3>Available Crews</h3>
+            <span class="count-badge">{{ vm.availableCrew.length }}</span>
+          </div>
+          <div class="table-container">
+            <table class="table" *ngIf="vm.availableCrew.length > 0">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Role</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let member of vm.availableCrew">
+                  <td>{{ member.name }}</td>
+                  <td>{{ member.role }}</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="no-data-mini" *ngIf="vm.availableCrew.length === 0">No available crew.</div>
+          </div>
+        </div>
+
+        <!-- Assigned Crews -->
+        <div class="crew-category">
+          <div class="category-header">
+            <h3>Assigned Crews</h3>
+            <span class="count-badge assigned">{{ vm.assignedCrew.length }}</span>
+          </div>
+          <div class="table-container">
+            <table class="table" *ngIf="vm.assignedCrew.length > 0">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Role</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let member of vm.assignedCrew">
+                  <td>{{ member.name }}</td>
+                  <td>{{ member.role }}</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="no-data-mini" *ngIf="vm.assignedCrew.length === 0">No crew assigned.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- No Crews at all -->
+      <div class="no-data" *ngIf="vm.total === 0">No crews added</div>
+    </div>
+  </ng-container>
+</div>

@@ -1,0 +1,49 @@
+<div class="admin-layout">
+  <!-- Sidebar Navigation -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2 class="logo">✈️ Airline Admin</h2>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item" [class.active]="activeTab === 'flights'" (click)="setActiveTab('flights')">
+        <span class="icon">📋</span> Flights
+      </button>
+      <button class="nav-item" [class.active]="activeTab === 'aircraft'" (click)="setActiveTab('aircraft')">
+        <span class="icon">🛩️</span> Aircraft
+      </button>
+      <button class="nav-item" [class.active]="activeTab === 'crew'" (click)="setActiveTab('crew')">
+        <span class="icon">👥</span> Crew
+      </button>
+      <button class="nav-item" [class.active]="activeTab === 'readiness'" (click)="setActiveTab('readiness')">
+        <span class="icon">✅</span> Readiness
+      </button>
+    </nav>
+
+    <button class="logout-btn" (click)="logout()">
+      <span>🚪</span> Logout
+    </button>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="admin-content">
+    <header class="dashboard-header">
+      <h1>Admin Dashboard</h1>
+    </header>
+
+    <div class="tabs-content">
+      <div *ngIf="activeTab === 'flights'">
+        <app-flight-list></app-flight-list>
+      </div>
+      <div *ngIf="activeTab === 'aircraft'">
+        <app-aircraft-list></app-aircraft-list>
+      </div>
+      <div *ngIf="activeTab === 'crew'">
+        <app-crew-list></app-crew-list>
+      </div>
+      <div *ngIf="activeTab === 'readiness'">
+        <app-readiness-check></app-readiness-check>
+      </div>
+    </div>
+  </main>
+</div>

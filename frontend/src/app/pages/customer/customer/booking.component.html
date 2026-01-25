@@ -1,0 +1,127 @@
+<div class="container">
+  <div class="header-section">
+    <h2>Bookings & Tickets</h2>
+  </div>
+
+  <ng-container *ngIf="vm$ | async as vm">
+    <div class="error-alert" *ngIf="vm.error">{{ vm.error }}</div>
+
+    <!-- Always visible: My Bookings History List -->
+    <div class="bookings-list-section" *ngIf="vm.passengerId">
+      <h3>My Travel History</h3>
+      <div class="loading" *ngIf="vm.loading && vm.myBookings.length === 0">Syncing with history...</div>
+
+      <div class="bookings-grid" *ngIf="vm.myBookings.length > 0">
+        <div class="booking-card" *ngFor="let b of vm.myBookings">
+          <div class="booking-header">
+            <span class="booking-id">#{{ b.id }}</span>
+            <span class="status-badge" [class.confirmed]="b.status === 'CONFIRMED'">{{ b.status }}</span>
+          </div>
+          <div class="flight-details">
+            <div class="route" *ngIf="b.flight">
+              <strong>{{ b.flight.source }}</strong> → <strong>{{ b.flight.destination }}</strong>
+            </div>
+            <div class="time" *ngIf="b.flight">{{ b.flight.departureTime | date: 'medium' }}</div>
+            <div class="seats">Seats: {{ b.seatsBooked }}</div>
+          </div>
+          <div class="amount">Total: ${{ b.totalAmount }}</div>
+        </div>
+      </div>
+
+      <div class="no-data" *ngIf="!vm.loading && vm.myBookings.length === 0">
+        No bookings found. Start your journey below!
+      </div>
+    </div>
+
+    <hr class="divider" *ngIf="vm.passengerId" />
+
+    <!-- Current Action View -->
+    <div class="dashboard-view" *ngIf="vm.passengerId">
+
+      <!-- STEP 1: Main List (Rest state) -->
+      <div class="action-section" *ngIf="vm.step === 'list'">
+        <button class="btn-primary btn-lg" (click)="startNewBooking()">+ New Flight Booking</button>
+      </div>
+
+      <!-- STEP 2: Booking Details Input -->
+      <div class="form-card" *ngIf="vm.step === 'booking'">
+        <div class="card-header">
+          <h3>Confirm Traveler Details</h3>
+          <button class="btn-close" (click)="cancelBookingStep()">✕</button>
+        </div>
+        <form [formGroup]="bookingForm" (ngSubmit)="bookFlight()">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Full Name</label>
+              <input formControlName="name" type="text" class="form-control" placeholder="Passenger Name" />
+            </div>
+            <div class="form-group">
+              <label>Email Address</label>
+              <input formControlName="email" type="email" class="form-control" placeholder="contact@example.com" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Flight Selection</label>
+              <select formControlName="flightId" class="form-control">
+                <option value="">Choose a flight...</option>
+                <option *ngFor="let flight of vm.flights" [value]="flight.id">
+                  {{ flight.flightNumber }} - {{ flight.source }} → {{ flight.destination }} (${{ flight.price }})
+                </option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Number of Seats</label>
+              <input formControlName="seats" type="number" class="form-control" min="1" />
+            </div>
+          </div>
+
+          <button type="submit" class="btn-primary btn-lg" [disabled]="bookingForm.invalid || vm.localLoading"
+            style="width: 100%;">
+            {{ vm.localLoading ? 'Generating Invoice...' : 'Proceed to Payment' }}
+          </button>
+        </form>
+      </div>
+
+      <!-- STEP 3: Secure Payment Processing -->
+      <div class="form-card" *ngIf="vm.step === 'payment' && vm.bookingResult">
+        <div class="card-header">
+          <h3>Secure Checkout</h3>
+          <button class="btn-close" (click)="updateState({ step: 'booking' })" style="color: white">Back</button>
+        </div>
+
+        <div class="booking-summary-box" *ngIf="vm.bookingResult">
+          <p><strong>Flight:</strong> {{ vm.bookingResult.flight.source }} → {{ vm.bookingResult.flight.destination }}
+          </p>
+          <p><strong>Seats Reserved:</strong> {{ vm.bookingResult.seatsBooked }}</p>
+          <div class="total-bar">
+            <span>Amount Payable:</span>
+            <strong>${{ vm.bookingResult.totalAmount }}</strong>
+          </div>
+        </div>
+
+        <form [formGroup]="paymentForm" (ngSubmit)="makePayment()">
+          <div class="form-group">
+            <label>Select Payment Provider</label>
+            <select formControlName="paymentMode" class="form-control">
+              <option value="CREDIT_CARD">Credit Card (Visa/Mastercard)</option>
+              <option value="DEBIT_CARD">Debit Card</option>
+              <option value="UPI">UPI / QR Code</option>
+              <option value="NET_BANKING">Net Banking</option>
+            </select>
+          </div>
+          <button type="submit" class="btn-primary btn-lg" [disabled]="paymentForm.invalid || vm.localLoading"
+            style="width: 100%;">
+            {{ vm.localLoading ? 'Authorizing...' : 'Pay Now & Confirm' }}
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Initial Loading State -->
+    <div class="loading-overlay" *ngIf="!vm.passengerId && vm.loading">
+      <p>Fetching your travel profile...</p>
+    </div>
+  </ng-container>
+</div>

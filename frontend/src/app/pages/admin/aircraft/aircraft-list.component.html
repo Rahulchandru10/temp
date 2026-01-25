@@ -1,0 +1,73 @@
+<div class="container">
+  <div class="header-section">
+    <h2>Aircraft Management</h2>
+    <button class="btn-primary" (click)="openForm()" *ngIf="!showForm">
+      + Add Aircraft
+    </button>
+  </div>
+
+  <div class="error-alert" *ngIf="error">{{ error }}</div>
+
+  <!-- Form -->
+  <div class="form-section" *ngIf="showForm">
+    <div class="form-card">
+      <h3>{{ editingId ? 'Edit Aircraft' : 'Add New Aircraft' }}</h3>
+      <form [formGroup]="aircraftForm" (ngSubmit)="onSubmit()">
+        <div class="form-group">
+          <label>Aircraft Name</label>
+          <input formControlName="name" type="text" class="form-control" placeholder="e.g., Boeing 747" />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Model</label>
+            <input formControlName="model" type="text" class="form-control" placeholder="e.g., 747-400" />
+          </div>
+          <div class="form-group">
+            <label>Capacity</label>
+            <input formControlName="capacity" type="number" class="form-control" />
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-primary" [disabled]="aircraftForm.invalid">
+            {{ editingId ? 'Update' : 'Create' }}
+          </button>
+          <button type="button" class="btn-secondary" (click)="closeForm()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-section">
+    <ng-container *ngIf="aircraft$ | async as aircraftList">
+      <table class="table" *ngIf="aircraftList && aircraftList.length > 0">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Model</th>
+            <th>Capacity</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let ac of aircraftList">
+            <td>{{ ac.name }}</td>
+            <td>{{ ac.model }}</td>
+            <td>{{ ac.capacity }} Seats</td>
+            <td><span class="badge">{{ ac.status }}</span></td>
+            <td>
+              <button class="btn-sm btn-edit" (click)="edit(ac)">Edit</button>
+              <button class="btn-sm btn-delete" (click)="delete(ac.id)">Delete</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="no-data" *ngIf="aircraftList && aircraftList.length === 0">
+        No aircraft found. Add your first aircraft!
+      </div>
+    </ng-container>
+  </div>
+</div>

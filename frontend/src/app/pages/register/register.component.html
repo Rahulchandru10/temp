@@ -1,0 +1,80 @@
+<div class="login-wrapper">
+    <div class="login-card">
+        <div class="login-header">
+            <h2>Join FlyHigh</h2>
+            <p>Create your traveler account</p>
+        </div>
+
+        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+            <div class="form-group">
+                <label>Full Name</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-user"></i>
+                    <input type="text" formControlName="name" placeholder="John Doe" />
+                </div>
+                <div class="error-msg" *ngIf="registerForm.get('name')?.touched && registerForm.get('name')?.invalid">
+                    Please enter your full name.
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Username</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-id-badge"></i>
+                    <input type="text" formControlName="username" placeholder="johndoe123" />
+                </div>
+                <div class="error-msg"
+                    *ngIf="registerForm.get('username')?.touched && registerForm.get('username')?.invalid">
+                    Username must be at least 3 characters.
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Email Address</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" formControlName="email" placeholder="name@example.com" />
+                </div>
+                <div class="error-msg" *ngIf="registerForm.get('email')?.touched && registerForm.get('email')?.invalid">
+                    Please enter a valid email.
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Password</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" formControlName="password" placeholder="••••••••" />
+                </div>
+                <div class="error-msg"
+                    *ngIf="registerForm.get('password')?.touched && registerForm.get('password')?.invalid">
+                    Password must be at least 6 characters.
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Confirm Password</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" formControlName="confirmPassword" placeholder="••••••••" />
+                </div>
+                <div class="error-msg"
+                    *ngIf="registerForm.get('confirmPassword')?.touched && registerForm.hasError('mismatch')">
+                    Passwords do not match.
+                </div>
+            </div>
+
+            <div class="alert error" *ngIf="error">{{ error }}</div>
+            <div class="alert success" *ngIf="success">{{ success }}</div>
+
+            <button type="submit" [disabled]="registerForm.invalid || loading">
+                <span *ngIf="!loading">Create Account</span>
+                <span *ngIf="loading">Creating Account...</span>
+            </button>
+
+            <div class="register-link">
+                Already have an account? <a routerLink="/login">Log In</a>
+            </div>
+        </form>
+    </div>
+</div>

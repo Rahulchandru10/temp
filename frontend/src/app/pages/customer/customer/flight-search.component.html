@@ -1,0 +1,72 @@
+<div class="container">
+  <div class="header-section">
+    <h2>Search Flights</h2>
+  </div>
+
+  <div class="form-card">
+    <form [formGroup]="searchForm" (ngSubmit)="onSearch()">
+      <div class="form-row">
+        <div class="form-group">
+          <label>From</label>
+          <input formControlName="source" type="text" class="form-control" placeholder="e.g., New York" />
+        </div>
+        <div class="form-group">
+          <label>To</label>
+          <input formControlName="destination" type="text" class="form-control" placeholder="e.g., Los Angeles" />
+        </div>
+        <div class="form-group">
+          <label>Travel Date</label>
+          <input formControlName="date" type="date" class="form-control" />
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-primary" [disabled]="searchForm.invalid">
+          Search Flights
+        </button>
+        <button type="button" class="btn-secondary" (click)="reset()">Reset</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Reactive View Container -->
+  <ng-container *ngIf="vm$ | async as vm">
+
+    <!-- Loading State -->
+    <div class="loading" *ngIf="vm.loading">
+      <div class="spinner"></div>
+      <p>Searching for best flights...</p>
+    </div>
+
+    <!-- Error State -->
+    <div class="error-alert" *ngIf="vm.error && !vm.loading">{{ vm.error }}</div>
+
+    <!-- Results State -->
+    <div class="flights-grid" *ngIf="vm.searched && vm.flights.length > 0 && !vm.loading">
+      <div class="flight-card" *ngFor="let flight of vm.flights">
+        <div class="flight-header">
+          <div class="flight-number">{{ flight.flightNumber }}</div>
+          <div class="flight-status" [class.ready]="flight.status === 'READY'">{{ flight.status }}</div>
+        </div>
+        <div class="flight-info">
+          <div class="route">
+            <span class="location">{{ flight.source }}</span>
+            <span class="arrow">→</span>
+            <span class="location">{{ flight.destination }}</span>
+          </div>
+          <div class="times">
+            <span>Depart: {{ flight.departureTime | date: 'short' }}</span>
+            <span>Arrive: {{ flight.arrivalTime | date: 'short' }}</span>
+          </div>
+          <div class="price">Price: <strong>${{ flight.price }}</strong></div>
+        </div>
+        <button class="btn-primary" (click)="bookFlight(flight)">Book Now</button>
+      </div>
+    </div>
+
+    <!-- No Data State -->
+    <div class="no-data" *ngIf="vm.searched && vm.flights.length === 0 && !vm.loading && !vm.error">
+      No flights found. Try adjusting your search.
+    </div>
+  </ng-container>
+</div>

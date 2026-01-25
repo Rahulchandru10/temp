@@ -1,0 +1,57 @@
+<div class="customer-layout">
+  <!-- Sidebar Navigation -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2 class="logo">✈️ Flight Portal</h2>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button
+        class="nav-item"
+        [class.active]="activeTab === 'search'"
+        (click)="setActiveTab('search')"
+      >
+        <span class="icon">🔍</span> Search Flights
+      </button>
+      <button
+        class="nav-item"
+        [class.active]="activeTab === 'booking'"
+        (click)="setActiveTab('booking')"
+      >
+        <span class="icon">📌</span> My Bookings
+      </button>
+      <button
+        class="nav-item"
+        [class.active]="activeTab === 'checkin'"
+        (click)="setActiveTab('checkin')"
+      >
+        <span class="icon">✅</span> Check-In
+      </button>
+      <button
+        class="nav-item"
+        [class.active]="activeTab === 'boarding'"
+        (click)="setActiveTab('boarding')"
+      >
+        <span class="icon">🎫</span> Boarding Pass
+      </button>
+    </nav>
+
+    <button class="logout-btn" (click)="logout()">
+      <span>🚪</span> Logout
+    </button>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="customer-content">
+    <header class="dashboard-header">
+      <h1>Customer Dashboard</h1>
+    </header>
+
+    <div class="tabs-content">
+      <app-flight-search *ngIf="activeTab === 'search'"></app-flight-search>
+      <app-booking *ngIf="activeTab === 'booking'"></app-booking>
+      <app-check-in *ngIf="activeTab === 'checkin'"></app-check-in>
+      <app-boarding-pass *ngIf="activeTab === 'boarding'"></app-boarding-pass>
+    </div>
+  </main>
+</div>

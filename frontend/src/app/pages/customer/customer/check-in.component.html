@@ -1,0 +1,60 @@
+<div class="container">
+  <div class="header-section">
+    <h2>Check-In</h2>
+  </div>
+
+  <ng-container *ngIf="vm$ | async as vm">
+    <div class="form-card" *ngIf="vm.passengerId">
+      <h3>Passenger Check-In</h3>
+      <div class="error-alert" *ngIf="vm.error">{{ vm.error }}</div>
+
+      <form [formGroup]="checkInForm" (ngSubmit)="onCheckIn()">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Auto-Detected ID</label>
+            <input formControlName="passengerId" type="number" class="form-control" readonly />
+          </div>
+
+          <div class="form-group">
+            <label>Select Flight</label>
+            <select formControlName="flightId" class="form-control">
+              <option value="">Select flight...</option>
+              <option *ngFor="let flight of vm.flights" [value]="flight.id">
+                {{ flight.flightNumber }} - {{ flight.source }} → {{ flight.destination }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Preferred Seat Number</label>
+          <input formControlName="seatNumber" type="text" class="form-control" placeholder="e.g., 12A" />
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-primary" [disabled]="checkInForm.invalid || localLoading">
+            {{ localLoading ? 'Submitting...' : 'Confirm Check-In' }}
+          </button>
+          <button type="button" class="btn-secondary" (click)="reset()">Reset</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Check-In Result -->
+    <div class="result-card" *ngIf="vm.checkInResult">
+      <div class="success">
+        <h3>✅ Check-In Successful</h3>
+        <div class="boarding-info">
+          <p><strong>Seat:</strong> {{ vm.checkInResult.boardingPass.seatNumber }}</p>
+          <p><strong>Gate:</strong> {{ vm.checkInResult.boardingPass.gate }}</p>
+          <p><strong>Boarding Time:</strong> {{ vm.checkInResult.boardingPass.boardingTime | date:'short' }}</p>
+          <p><strong>Boarding Number:</strong> {{ vm.checkInResult.boardingPass.boardingNumber }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="loading" *ngIf="!vm.passengerId && vm.loading">
+      Identifying your traveler profile...
+    </div>
+  </ng-container>
+</div>

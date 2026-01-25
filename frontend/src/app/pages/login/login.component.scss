@@ -1,0 +1,141 @@
+.login-wrapper {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #1e1e2f 0%, #2a2a3d 100%);
+  padding: 20px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  background: #2a2a3d;
+  border-radius: 12px;
+  padding: 40px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.login-header {
+  margin-bottom: 30px;
+  text-align: center;
+
+  h1 {
+    color: #f3f3f3;
+    font-size: 28px;
+    margin: 0 0 10px 0;
+    font-weight: 700;
+  }
+
+  .subtitle {
+    color: #a0a0b0;
+    font-size: 14px;
+    margin: 0;
+  }
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  label {
+    color: #f3f3f3;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: left;
+  }
+
+  .form-control {
+    padding: 12px 14px;
+    background: #1e1e2f;
+    border: 2px solid #3a3a4d;
+    border-radius: 8px;
+    color: #f3f3f3;
+    font-size: 14px;
+    transition: all 0.3s ease;
+
+    &:focus {
+      outline: none;
+      border-color: #3a3dcb;
+      box-shadow: 0 0 0 3px rgba(58, 61, 203, 0.1);
+    }
+
+    &.is-invalid {
+      border-color: #ef4444;
+    }
+
+    &::placeholder {
+      color: #6b6b80;
+    }
+  }
+
+  .error-message {
+    color: #ef4444;
+    font-size: 12px;
+    margin-top: 4px;
+  }
+}
+
+.error-alert {
+  background: #7f1d1d;
+  border: 1px solid #b91c1c;
+  border-radius: 6px;
+  padding: 12px;
+  color: #fecaca;
+
+  p {
+    margin: 0;
+    font-size: 14px;
+  }
+}
+
+.btn-primary {
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #3a3dcb 0%, #2563eb 100%);
+  color: #f3f3f3;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(58, 61, 203, 0.3);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.demo-credentials {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #3a3a4d;
+  text-align: center;
+  font-size: 12px;
+
+  p {
+    color: #a0a0b0;
+    margin: 4px 0;
+    line-height: 1.6;
+
+    strong {
+      color: #f3f3f3;
+    }
+  }
+}

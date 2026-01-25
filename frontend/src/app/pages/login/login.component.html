@@ -1,0 +1,48 @@
+<div class="login-wrapper">
+  <div class="login-card">
+    <div class="login-header">
+      <h1>Airline Management System</h1>
+      <p class="subtitle">Sign in to continue</p>
+    </div>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input id="username" type="text" placeholder="Enter your username" formControlName="username"
+          class="form-control" [class.is-invalid]="submitted && f['username'].errors" />
+        <div class="error-message" *ngIf="submitted && f['username'].errors">
+          <span *ngIf="f['username'].errors['required']">Username is required</span>
+          <span *ngIf="f['username'].errors['minlength']">Username must be at least 3 characters</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input id="password" type="password" placeholder="Enter your password" formControlName="password"
+          class="form-control" [class.is-invalid]="submitted && f['password'].errors" />
+        <div class="error-message" *ngIf="submitted && f['password'].errors">
+          <span *ngIf="f['password'].errors['required']">Password is required</span>
+          <span *ngIf="f['password'].errors['minlength']">Password must be at least 6 characters</span>
+        </div>
+      </div>
+
+      <div class="error-alert" *ngIf="error">
+        <p>{{ error }}</p>
+      </div>
+
+      <button type="submit" class="btn-primary" [disabled]="loading">
+        {{ loading ? 'Signing in...' : 'Sign In' }}
+      </button>
+
+      <div class="register-link" style="margin-top: 15px; text-align: center; color: #a0a0b0; font-size: 14px;">
+        New User? <a routerLink="/register" style="color: #3b82f6; text-decoration: none;">Create an Account</a>
+      </div>
+    </form>
+
+    <div class="demo-credentials">
+      <p>Demo Credentials:</p>
+      <p><strong>Admin:</strong> admin / admin123</p>
+      <p><strong>Customer:</strong> customer / customer123</p>
+    </div>
+  </div>
+</div>
