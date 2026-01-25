@@ -57,6 +57,7 @@ public class AuthController {
 
         // Also create a passenger profile for history tracking
         Passenger passenger = new Passenger();
+        passenger.setUsername(request.getUsername());
         passenger.setName(request.getName());
         passenger.setEmail(request.getEmail());
         passengerRepo.save(passenger);

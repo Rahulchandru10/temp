@@ -35,9 +35,9 @@ public class CheckInController {
 
         // Create boarding pass
         BoardingPass bp = new BoardingPass();
-        bp.setPassenger(passenger);
-        bp.setSeatNumber("A" + (int)(Math.random() * 30));
-        bp.setGate("G" + (int)(Math.random() * 10));
+        bp.setBooking(booking);
+        bp.setSeatNumber("A" + (int) (Math.random() * 30));
+        bp.setGate("G" + (int) (Math.random() * 10));
         bp.setBoardingTime(LocalDateTime.now().plusMinutes(30)); // 30 mins before now
         bp.setStatus("ACTIVE");
         bp.setBoardingNumber("BP-" + java.util.UUID.randomUUID());

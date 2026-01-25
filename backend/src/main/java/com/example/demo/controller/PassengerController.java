@@ -29,24 +29,24 @@ public class PassengerController {
         return service.addPassenger(passenger);
     }
 
-    @GetMapping("/by-email")
-    public Passenger getByEmail(@RequestParam String email) {
-        return service.getPassengerByEmail(email);
+    @GetMapping("/by-username")
+    public Passenger getByUsername(@RequestParam String username) {
+        return service.getPassengerByUsername(username);
     }
 
     @PostMapping("/checkin")
     public java.util.Map<String, Object> checkIn(
-            @RequestParam Long passengerId,
+            @RequestParam Long bookingId,
             @RequestParam String seat) {
-        BoardingPass pass = service.checkIn(passengerId, seat);
+        BoardingPass pass = service.checkIn(bookingId, seat);
         java.util.Map<String, Object> response = new java.util.HashMap<>();
         response.put("success", true);
         response.put("boardingPass", pass);
         return response;
     }
 
-    @GetMapping("/boardingpass/{passengerId}")
-    public BoardingPass getBoardingPass(@PathVariable Long passengerId) {
-        return service.getBoardingPassByPassengerId(passengerId);
+    @GetMapping("/boardingpass/{bookingId}")
+    public BoardingPass getBoardingPass(@PathVariable Long bookingId) {
+        return service.getBoardingPassByBookingId(bookingId);
     }
 }

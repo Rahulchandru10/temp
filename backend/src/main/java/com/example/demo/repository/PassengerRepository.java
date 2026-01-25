@@ -9,4 +9,6 @@ import com.example.demo.model.Passenger;
 
 public interface PassengerRepository extends JpaRepository<Passenger, Long> {
     java.util.Optional<Passenger> findByEmail(String email);
+
+    java.util.Optional<Passenger> findByUsername(String username);
 }

@@ -14,14 +14,15 @@ public class BoardingPass {
     private String boardingNumber; // unique boarding pass number
 
     @OneToOne
-    private Passenger passenger;   // link to passenger
+    private Booking booking; // link to specific booking
 
-    private String gate;           // boarding gate
-    private String seatNumber;     // seat assigned during check-in
+    private String gate; // boarding gate
+    private String seatNumber; // seat assigned during check-in
     private LocalDateTime boardingTime; // check-in time
-    private String status;         // ACTIVE / USED / CANCELLED
+    private String status; // ACTIVE / USED / CANCELLED
 
-    public BoardingPass() {}
+    public BoardingPass() {
+    }
 
     public Long getId() {
         return id;
@@ -35,12 +36,12 @@ public class BoardingPass {
         this.boardingNumber = boardingNumber;
     }
 
-    public Passenger getPassenger() {
-        return passenger;
+    public Booking getBooking() {
+        return booking;
     }
 
-    public void setPassenger(Passenger passenger) {
-        this.passenger = passenger;
+    public void setBooking(Booking booking) {
+        this.booking = booking;
     }
 
     public String getGate() {

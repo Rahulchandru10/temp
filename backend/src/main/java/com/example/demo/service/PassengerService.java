@@ -7,36 +7,47 @@ import org.springframework.stereotype.Service;
 
 import com.example.demo.model.BoardingPass;
 import com.example.demo.model.Passenger;
+import com.example.demo.model.CheckIn;
+import com.example.demo.model.Booking;
 import com.example.demo.repository.BoardingPassRepository;
 import com.example.demo.repository.PassengerRepository;
+import com.example.demo.repository.CheckInRepository;
+import com.example.demo.repository.BookingRepository;
 
 @Service
 public class PassengerService {
 
     private final PassengerRepository passengerRepo;
     private final BoardingPassRepository boardingRepo;
+    private final CheckInRepository checkInRepo;
+    private final BookingRepository bookingRepo;
 
     public PassengerService(
             PassengerRepository passengerRepo,
-            BoardingPassRepository boardingRepo) {
+            BoardingPassRepository boardingRepo,
+            CheckInRepository checkInRepo,
+            BookingRepository bookingRepo) {
         this.passengerRepo = passengerRepo;
         this.boardingRepo = boardingRepo;
+        this.checkInRepo = checkInRepo;
+        this.bookingRepo = bookingRepo;
     }
 
-    public Passenger getPassengerByEmail(String email) {
-        return passengerRepo.findByEmail(email).orElseGet(() -> {
+    public Passenger getPassengerByUsername(String username) {
+        return passengerRepo.findByUsername(username).orElseGet(() -> {
             Passenger p = new Passenger();
-            p.setEmail(email);
-            p.setName(email.split("@")[0]); // Default name from email
+            p.setUsername(username);
+            p.setEmail(username + "@auto.generated");
+            p.setName(username);
             return passengerRepo.save(p);
         });
     }
 
-    public BoardingPass getBoardingPassByPassengerId(Long passengerId) {
+    public BoardingPass getBoardingPassByBookingId(Long bookingId) {
         return boardingRepo.findAll().stream()
-                .filter(bp -> bp.getPassenger().getId().equals(passengerId))
+                .filter(bp -> bp.getBooking().getId().equals(bookingId))
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("Boarding pass not found"));
+                .orElse(null);
     }
 
     public Passenger addPassenger(Passenger passenger) {
@@ -44,17 +55,27 @@ public class PassengerService {
         return passengerRepo.save(passenger);
     }
 
-    public BoardingPass checkIn(Long passengerId, String seatNumber) {
+    public BoardingPass checkIn(Long bookingId, String seatNumber) {
 
-        Passenger passenger = passengerRepo.findById(passengerId)
-                .orElseThrow(() -> new RuntimeException("Passenger not found"));
+        Booking booking = bookingRepo.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
+
+        Passenger passenger = booking.getPassenger();
 
         passenger.setCheckedIn(true);
         passenger.setSeatNumber(seatNumber);
 
+        // Record in CheckIn table
+        CheckIn ci = new CheckIn();
+        ci.setBooking(booking);
+        ci.setSeatNumber(seatNumber);
+        ci.setCheckedIn(true);
+        checkInRepo.save(ci);
+
+        // Generate Boarding Pass
         BoardingPass pass = new BoardingPass();
         pass.setBoardingNumber("BP-" + UUID.randomUUID());
-        pass.setPassenger(passenger);
+        pass.setBooking(booking);
         pass.setSeatNumber(seatNumber);
         pass.setGate("G" + (int) (Math.random() * 10));
         pass.setBoardingTime(LocalDateTime.now());
