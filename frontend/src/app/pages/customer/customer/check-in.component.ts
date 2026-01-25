@@ -2,12 +2,14 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PassengerService } from '../../../services/passenger.service';
+import { BookingService } from '../../../services/booking.service';
 import { FlightService } from '../../../services/flight.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { Flight } from '../../../models/flight.model';
+import { Booking } from '../../../models/booking.model';
 import { CheckInResponse, Passenger } from '../../../models/passenger.model';
 import { Observable, BehaviorSubject, combineLatest, of } from 'rxjs';
-import { switchMap, map, startWith, catchError, filter, shareReplay } from 'rxjs/operators';
+import { switchMap, map, catchError, shareReplay, tap, filter, distinctUntilChanged, startWith } from 'rxjs/operators';
 
 @Component({
   selector: 'app-check-in',
@@ -23,7 +25,7 @@ export class CheckInComponent implements OnInit {
   private passengerProfile$!: Observable<Passenger | null>;
 
   vm$: Observable<{
-    flights: Flight[];
+    confirmedBookings: Booking[];
     passengerId: number | null;
     loading: boolean;
     error: string;
@@ -36,36 +38,40 @@ export class CheckInComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private passengerService: PassengerService,
-    private flightService: FlightService,
+    private bookingService: BookingService,
     private auth: AuthService
   ) {
     this.initializeForm();
 
     this.passengerProfile$ = this.auth.currentUser$.pipe(
-      switchMap(user => {
-        if (!user) return of(null);
-        return this.passengerService.getPassengerByEmail(user.username).pipe(
-          catchError(() => of(null))
-        );
-      }),
+      filter(u => !!u),
+      map(u => u!.username),
+      distinctUntilChanged(),
+      switchMap(username => this.passengerService.getPassengerByUsername(username).pipe(
+        catchError(err => {
+          console.error('Checkin profile error:', err);
+          return of(null);
+        })
+      )),
       shareReplay(1)
     );
 
-    const flights$ = this.flightService.getAllFlights().pipe(
-      catchError(() => of([])),
+    const bookings$ = this.passengerProfile$.pipe(
+      switchMap(p => p ? this.bookingService.getBookings(p.id) : of([])),
+      map(bookings => bookings.filter(b => b.status === 'CONFIRMED')),
       startWith([])
     );
 
-    this.vm$ = combineLatest([flights$, this.passengerProfile$, this.checkInResult$, this.error$]).pipe(
-      map(([flights, passenger, checkInResult, error]) => ({
-        flights,
+    this.vm$ = combineLatest([bookings$, this.passengerProfile$, this.checkInResult$, this.error$]).pipe(
+      map(([confirmedBookings, passenger, checkInResult, error]) => ({
+        confirmedBookings,
         passengerId: passenger ? passenger.id : null,
         loading: false,
         error,
         checkInResult
       })),
       startWith({
-        flights: [],
+        confirmedBookings: [],
         passengerId: null,
         loading: true,
         error: '',
@@ -83,7 +89,7 @@ export class CheckInComponent implements OnInit {
   initializeForm() {
     this.checkInForm = this.fb.group({
       passengerId: ['', Validators.required],
-      flightId: ['', Validators.required],
+      bookingId: ['', Validators.required],
       seatNumber: ['', Validators.required]
     });
   }
@@ -96,9 +102,9 @@ export class CheckInComponent implements OnInit {
 
     this.localLoading = true;
     this.error$.next('');
-    const { passengerId, seatNumber } = this.checkInForm.value;
+    const { bookingId, seatNumber } = this.checkInForm.value;
 
-    this.passengerService.checkInPassenger(passengerId, seatNumber).subscribe({
+    this.passengerService.checkInPassenger(bookingId, seatNumber).subscribe({
       next: (result) => {
         this.checkInResult$.next(result);
         this.localLoading = false;

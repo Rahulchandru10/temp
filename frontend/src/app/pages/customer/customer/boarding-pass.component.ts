@@ -8,7 +8,7 @@ import { BookingService } from '../../../services/booking.service';
 import { BoardingPass, Passenger } from '../../../models/passenger.model';
 import { Booking } from '../../../models/booking.model';
 import { Observable, BehaviorSubject, combineLatest, of } from 'rxjs';
-import { switchMap, map, startWith, catchError, filter, shareReplay } from 'rxjs/operators';
+import { switchMap, map, startWith, catchError, filter, shareReplay, distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
   selector: 'app-boarding-pass',
@@ -44,9 +44,14 @@ export class BoardingPassComponent implements OnInit {
     this.initializeForm();
 
     this.passengerProfile$ = this.auth.currentUser$.pipe(
-      filter(user => !!user),
-      switchMap(user => this.passengerService.getPassengerByEmail(user!.username).pipe(
-        catchError(() => of(null))
+      filter(u => !!u),
+      map(u => u!.username),
+      distinctUntilChanged(),
+      switchMap(username => this.passengerService.getPassengerByUsername(username).pipe(
+        catchError(err => {
+          console.error('Boarding profile error:', err);
+          return of(null);
+        })
       )),
       shareReplay(1)
     );
@@ -89,17 +94,14 @@ export class BoardingPassComponent implements OnInit {
   }
 
   getBoardingPass(booking?: Booking) {
-    const passengerId = this.boardingPassForm.get('passengerId')?.value;
-    if (!passengerId) return;
+    if (!booking) return;
 
-    if (booking) {
-      this.boardingPassForm.patchValue({ flightNumber: booking.flight.flightNumber });
-    }
+    this.boardingPassForm.patchValue({ flightNumber: booking.flight.flightNumber });
 
     this.localLoading = true;
     this.error$.next('');
 
-    this.boardingPassService.getBoardingPass(passengerId).subscribe({
+    this.boardingPassService.getBoardingPass(booking.id).subscribe({
       next: (result) => {
         this.boardingPass$.next(result);
         this.localLoading = false;

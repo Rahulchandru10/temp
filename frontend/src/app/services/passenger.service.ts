@@ -13,15 +13,15 @@ export class PassengerService {
     return this.http.post<Passenger>(this.baseUrl, passenger);
   }
 
-  checkInPassenger(passengerId: number, seat: string): Observable<CheckInResponse> {
+  checkInPassenger(bookingId: number, seat: string): Observable<CheckInResponse> {
     return this.http.post<CheckInResponse>(
       `${this.baseUrl}/checkin`,
       {},
-      { params: { passengerId: passengerId.toString(), seat } }
+      { params: { bookingId: bookingId.toString(), seat } }
     );
   }
 
-  getPassengerByEmail(email: string): Observable<Passenger> {
-    return this.http.get<Passenger>(`${this.baseUrl}/by-email`, { params: { email } });
+  getPassengerByUsername(username: string): Observable<Passenger> {
+    return this.http.get<Passenger>(`${this.baseUrl}/by-username`, { params: { username } });
   }
 }

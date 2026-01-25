@@ -79,7 +79,14 @@ export class AuthService {
           .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
           .join('')
       );
-      return JSON.parse(jsonPayload);
+      const payload = JSON.parse(jsonPayload);
+
+      // Standard JWT has 'sub' for subject. Map it to 'username' if 'username' is missing.
+      if (payload.sub && !payload.username) {
+        payload.username = payload.sub;
+      }
+
+      return payload as AuthPayload;
     } catch (error) {
       console.error('Error decoding token:', error);
       return null;

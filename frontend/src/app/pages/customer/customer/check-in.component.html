@@ -16,11 +16,11 @@
           </div>
 
           <div class="form-group">
-            <label>Select Flight</label>
-            <select formControlName="flightId" class="form-control">
-              <option value="">Select flight...</option>
-              <option *ngFor="let flight of vm.flights" [value]="flight.id">
-                {{ flight.flightNumber }} - {{ flight.source }} → {{ flight.destination }}
+            <label>Select Booking</label>
+            <select formControlName="bookingId" class="form-control">
+              <option value="">Select a booking...</option>
+              <option *ngFor="let b of vm.confirmedBookings" [value]="b.id">
+                Ticket #{{ b.id }} - {{ b.flight.flightNumber }} ({{ b.flight.source }} → {{ b.flight.destination }})
               </option>
             </select>
           </div>

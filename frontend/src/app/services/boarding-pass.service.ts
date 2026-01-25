@@ -9,7 +9,7 @@ export class BoardingPassService {
 
   constructor(private http: HttpClient) { }
 
-  getBoardingPass(passengerId: number): Observable<BoardingPass> {
-    return this.http.get<BoardingPass>(`${this.baseUrl}/boardingpass/${passengerId}`);
+  getBoardingPass(bookingId: number): Observable<BoardingPass> {
+    return this.http.get<BoardingPass>(`${this.baseUrl}/boardingpass/${bookingId}`);
   }
 }

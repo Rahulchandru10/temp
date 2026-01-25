@@ -65,7 +65,7 @@ export class BookingComponent implements OnInit {
       filter(u => !!u),
       map(u => u!.username),
       distinctUntilChanged(),
-      switchMap(email => this.passengerService.getPassengerByEmail(email).pipe(
+      switchMap(username => this.passengerService.getPassengerByUsername(username).pipe(
         tap(p => {
           if (p && !this.bookingForm.get('passengerId')?.value) {
             this.bookingForm.patchValue({ passengerId: p.id });
