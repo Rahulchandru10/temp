@@ -3,6 +3,7 @@ package com.example.demo.dto;
 public class BookingRequest {
     private Long flightId;
     private Long passengerId;
+    private String username;
     private int seats;
     private String name;
     private String email;
@@ -24,6 +25,14 @@ public class BookingRequest {
 
     public void setPassengerId(Long passengerId) {
         this.passengerId = passengerId;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public int getSeats() {

@@ -3,9 +3,7 @@ package com.example.demo.controller;
 import com.example.demo.dto.LoginRequest;
 import com.example.demo.dto.LoginResponse;
 import com.example.demo.dto.RegisterRequest;
-import com.example.demo.model.Passenger;
 import com.example.demo.model.User;
-import com.example.demo.repository.PassengerRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.util.JwtUtil;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,14 +17,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 public class AuthController {
 
     private final UserRepository userRepo;
-    private final PassengerRepository passengerRepo;
     private final PasswordEncoder encoder;
 
     public AuthController(UserRepository userRepo,
-            PassengerRepository passengerRepo,
             PasswordEncoder encoder) {
         this.userRepo = userRepo;
-        this.passengerRepo = passengerRepo;
         this.encoder = encoder;
     }
 
@@ -37,7 +32,7 @@ public class AuthController {
             throw new RuntimeException("Invalid credentials");
         }
         User user = userOpt.get();
-        String token = JwtUtil.generateToken(user.getUsername(), user.getRole());
+        String token = JwtUtil.generateToken(user.getUsername(), user.getRole(), user.getEmail(), user.getFullName());
         return new LoginResponse(token, user.getRole());
     }
 
@@ -51,16 +46,11 @@ public class AuthController {
         User user = new User();
         user.setUsername(request.getUsername());
         user.setPassword(encoder.encode(request.getPassword()));
+        user.setEmail(request.getEmail());
+        user.setFullName(request.getName());
         user.setRole("CUSTOMER");
         user.setEnabled(true);
         userRepo.save(user);
-
-        // Also create a passenger profile for history tracking
-        Passenger passenger = new Passenger();
-        passenger.setUsername(request.getUsername());
-        passenger.setName(request.getName());
-        passenger.setEmail(request.getEmail());
-        passengerRepo.save(passenger);
 
         return user;
     }

@@ -37,11 +37,11 @@ public class AircraftReadinessController {
                 .filter(a -> a.getFlight().getId().equals(flightId))
                 .count();
 
-        if (assignedCrew < 3) {
+        if (assignedCrew < 4) {
             flight.setStatus("NOT READY");
             flightRepo.save(flight);
             return new com.example.demo.dto.ReadinessResponse(flightId, false,
-                    "Flight not ready: Crew incomplete (Required: 3, Assigned: " + assignedCrew + ")");
+                    "Flight not ready: Crew incomplete (Required: 4, Assigned: " + assignedCrew + ")");
         }
 
         flight.setStatus("READY");

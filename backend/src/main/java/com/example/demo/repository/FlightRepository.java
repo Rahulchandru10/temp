@@ -9,9 +9,11 @@ import com.example.demo.model.Flight;
 
 public interface FlightRepository extends JpaRepository<Flight, Long> {
 
-    List<Flight> findBySourceIgnoreCaseAndDestinationIgnoreCaseAndDepartureTimeBetween(
+    List<Flight> findBySourceIgnoreCaseAndDestinationIgnoreCaseAndDepartureTimeBetweenAndStatus(
             String source,
             String destination,
             LocalDateTime start,
-            LocalDateTime end);
+            LocalDateTime end,
+            String status
+    );
 }

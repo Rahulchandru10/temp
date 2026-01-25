@@ -34,13 +34,7 @@ public class PassengerService {
     }
 
     public Passenger getPassengerByUsername(String username) {
-        return passengerRepo.findByUsername(username).orElseGet(() -> {
-            Passenger p = new Passenger();
-            p.setUsername(username);
-            p.setEmail(username + "@auto.generated");
-            p.setName(username);
-            return passengerRepo.save(p);
-        });
+        return passengerRepo.findByUsername(username).orElse(null);
     }
 
     public BoardingPass getBoardingPassByBookingId(Long bookingId) {

@@ -103,7 +103,8 @@ public class FlightController {
         LocalDateTime start = localDate.atStartOfDay();
         LocalDateTime end = localDate.atTime(23, 59);
 
-        return flightRepo.findBySourceIgnoreCaseAndDestinationIgnoreCaseAndDepartureTimeBetween(
-                source, destination, start, end);
+        return flightRepo.findBySourceIgnoreCaseAndDestinationIgnoreCaseAndDepartureTimeBetweenAndStatus(
+                source, destination, start, end, "READY");
+
     }
 }
