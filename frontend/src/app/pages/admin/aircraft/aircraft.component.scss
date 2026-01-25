@@ -516,3 +516,98 @@ td {
     transform: rotate(360deg);
   }
 }
+
+// Readiness Check Specific Enhancements
+.status-header {
+  margin-bottom: 1.5rem;
+  
+  h3 {
+    font-size: 22px;
+    margin-bottom: 0.5rem;
+  }
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+  padding-left: 35px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 15px;
+
+  input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+
+    &:checked ~ .checkmark {
+      background-color: #3a3dcb;
+      border-color: #3a3dcb;
+
+      &:after {
+        display: block;
+      }
+    }
+  }
+
+  .checkmark {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    height: 22px;
+    width: 22px;
+    background-color: #1e1e2f;
+    border: 2px solid #3a3a4d;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+
+    &:after {
+      content: "";
+      position: absolute;
+      display: none;
+      left: 7px;
+      top: 3px;
+      width: 5px;
+      height: 10px;
+      border: solid white;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+  }
+
+  .crew-info {
+    display: flex;
+    flex-direction: column;
+    
+    strong {
+      color: #f3f3f3;
+    }
+    
+    .role-badge {
+      font-size: 11px;
+      background: #3a3a4d;
+      color: #a0a0b0;
+      padding: 2px 6px;
+      border-radius: 4px;
+      width: fit-content;
+      margin-top: 2px;
+      text-transform: uppercase;
+    }
+  }
+}
+
+.subtitle {
+  color: #a0a0b0;
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+
+.ready-actions {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: center;
+}

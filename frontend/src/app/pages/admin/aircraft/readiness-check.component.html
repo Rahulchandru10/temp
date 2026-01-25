@@ -4,72 +4,68 @@
   </div>
 
   <ng-container *ngIf="vm$ | async as vm">
+    <!-- 1. Flight Selection -->
     <div class="form-card">
-      <form [formGroup]="readinessForm" (ngSubmit)="checkReadiness()">
+      <form [formGroup]="readinessForm">
         <div class="form-group">
           <label>Select Flight</label>
           <select formControlName="flightId" class="form-control">
-            <option value="">Choose a flight...</option>
+            <option value="">-- Choose a flight to manage --</option>
             <option *ngFor="let flight of vm.flights" [value]="flight.id">
               {{ flight.flightNumber }} - {{ flight.source }} → {{ flight.destination }}
             </option>
           </select>
         </div>
-
-        <div class="form-actions" style="display: flex; gap: 1rem; align-items: flex-end;">
-          <button type="submit" class="btn-primary" [disabled]="readinessForm.invalid || vm.loading">
-            {{ vm.loading ? 'Updating...' : 'Check Readiness' }}
-          </button>
-        </div>
       </form>
     </div>
 
-    <!-- Quick Assign Aircraft (Always visible if a flight is selected) -->
-    <div class="form-card" *ngIf="readinessForm.get('flightId')?.value"
-      style="margin-top: 1rem; border-top: 2px solid #3a3dcb;">
-      <h3>Quick Assign Aircraft</h3>
-      <p style="color: #a0a0b0; font-size: 0.9rem; margin-bottom: 1rem;">Assign an aircraft to the selected flight
-        directly.</p>
+    <!-- 2. Status & Crew Assignment (Appears once flight is selected) -->
+    <div class="management-grid" *ngIf="readinessForm.get('flightId')?.value && !vm.checking">
 
-      <div class="form-group">
-        <select [(ngModel)]="selectedAircraftId" class="form-control">
-          <option [ngValue]="null">Select an Aircraft to Assign</option>
-          <option *ngFor="let aircraft of vm.allAircraft" [value]="aircraft.id">
-            {{ aircraft.name }} ({{ aircraft.model }}) - Status: {{ aircraft.status }}
-          </option>
-        </select>
-      </div>
-      <button class="btn-primary" [disabled]="!selectedAircraftId || assigning" (click)="assignAircraft()"
-        style="margin-top: 1rem; width: auto;">
-        {{ assigning ? 'Assigning...' : 'Assign Aircraft Now' }}
-      </button>
-    </div>
-
-    <!-- Results Section -->
-    <div class="result-card" *ngIf="vm.readinessResult" style="margin-top: 2rem;">
-      <div [ngClass]="{ 'ready': vm.readinessResult.isReady, 'not-ready': !vm.readinessResult.isReady }">
-        <h3>{{ vm.readinessResult.isReady ? '✅ Flight is Ready' : '❌ Flight is Not Ready' }}</h3>
-        <p>{{ vm.readinessResult.message }}</p>
-
-        <!-- Crew Selection if not ready -->
-        <div class="crew-assignment-section"
-          *ngIf="!vm.readinessResult.isReady && vm.readinessResult.message.includes('Crew')">
-          <h4>Assign Available Crew Members</h4>
-          <div class="crew-selection-list">
-            <div *ngFor="let member of vm.availableCrew" class="crew-item">
-              <label>
-                <input type="checkbox" [checked]="selectedCrewIds.includes(member.id)"
-                  (change)="toggleCrewSelection(member.id)">
-                <span class="crew-info">{{ member.name }} ({{ member.role }})</span>
-              </label>
-            </div>
+      <!-- Current Readiness Status -->
+      <div class="result-card">
+        <div [ngClass]="{ 'ready': vm.readinessResult?.isReady, 'not-ready': !vm.readinessResult?.isReady }">
+          <div class="status-header">
+            <h3>{{ vm.readinessResult?.isReady ? '✅ Flight protocol verified' : '⚠️ Ready for Configuration' }}</h3>
+            <p>{{ vm.readinessResult?.message || 'Awaiting initial check...' }}</p>
           </div>
-          <button class="btn-primary" [disabled]="selectedCrewIds.length === 0 || assigning"
-            (click)="assignSelectedCrew()">
-            {{ assigning ? 'Assigning...' : 'Assign Selected Crew (' + selectedCrewIds.length + ')' }}
-          </button>
         </div>
       </div>
+
+      <!-- Crew Assignment Section (Always open if flight selected) -->
+      <div class="form-card crew-assignment-section" style="margin-top: 1.5rem;">
+        <h4>Assign Available Crew Members</h4>
+        <p class="subtitle">Select the flight personnel to finalize departure readiness.</p>
+
+        <div class="crew-selection-list">
+          <div *ngFor="let member of vm.availableCrew" class="crew-item">
+            <label class="checkbox-container">
+              <input type="checkbox" [checked]="selectedCrewIds.includes(member.id)"
+                (change)="toggleCrewSelection(member.id)">
+              <span class="checkmark"></span>
+              <span class="crew-info">
+                <strong>{{ member.name }}</strong>
+                <span class="role-badge">{{ member.role }}</span>
+              </span>
+            </label>
+          </div>
+
+          <div class="no-data-mini" *ngIf="vm.availableCrew.length === 0">
+            No available crew members found.
+          </div>
+        </div>
+
+        <button class="btn-primary" [disabled]="selectedCrewIds.length === 0 || assigning"
+          (click)="assignSelectedCrew()">
+          {{ assigning ? 'Processing...' : 'Make Flight Ready' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading indicator -->
+    <div class="loading-state" *ngIf="vm.checking" style="margin-top: 2rem;">
+      <div class="spinner"></div>
+      <p>Updating flight database...</p>
     </div>
 
     <div class="error-alert" *ngIf="vm.error">{{ vm.error }}</div>

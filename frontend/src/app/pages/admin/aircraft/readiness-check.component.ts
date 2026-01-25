@@ -24,6 +24,7 @@ export class ReadinessCheckComponent implements OnInit {
   private checkTrigger$ = new BehaviorSubject<number | null>(null);
   private assignTrigger$ = new BehaviorSubject<void>(undefined);
   private error$ = new BehaviorSubject<string>('');
+  private checking$ = new BehaviorSubject<boolean>(false);
 
   vm$: Observable<{
     flights: Flight[];
@@ -31,12 +32,12 @@ export class ReadinessCheckComponent implements OnInit {
     allAircraft: Aircraft[];
     readinessResult: ReadinessCheck | null;
     loading: boolean;
+    checking: boolean;
     error: string;
   }>;
 
   readinessForm!: FormGroup;
   selectedCrewIds: number[] = [];
-  selectedAircraftId: number | null = null;
   assigning = false;
 
   constructor(
@@ -50,35 +51,63 @@ export class ReadinessCheckComponent implements OnInit {
 
     const flights$ = this.flightsRefresh$.pipe(
       switchMap(() => this.flightService.getAllFlights().pipe(
-        startWith([]),
         catchError(() => of([]))
-      ))
+      )),
+      startWith([] as Flight[]),
+      tap(f => console.log('Readiness: Flights loaded', f.length))
     );
 
     const data$ = this.assignTrigger$.pipe(
       startWith(undefined),
       switchMap(() => combineLatest([
-        this.crewService.getAllCrew().pipe(map(crew => crew.filter(c => c.available)), catchError(() => of([]))),
-        this.aircraftService.getAllAircraft().pipe(catchError(() => of([])))
-      ]))
+        this.crewService.getAllCrew().pipe(
+          map(crew => crew.filter(c => c.available)),
+          catchError(() => of([] as Crew[]))
+        ),
+        this.aircraftService.getAllAircraft().pipe(
+          catchError(() => of([] as Aircraft[]))
+        )
+      ])),
+      tap(() => console.log('Readiness: Crew/Aircraft data refreshed'))
     );
 
     const readinessResult$ = this.checkTrigger$.pipe(
+      tap(id => {
+        console.log('Readiness: Check trigger fired for ID:', id);
+        if (id) this.checking$.next(true);
+      }),
       switchMap(flightId => {
         if (!flightId) return of(null);
         return this.readinessService.checkFlightReadiness(flightId).pipe(
-          catchError(() => of(null))
+          tap(res => {
+            console.log('Readiness: Service response', res);
+            this.checking$.next(false);
+          }),
+          catchError(err => {
+            console.error('Readiness: Service Error', err);
+            this.checking$.next(false);
+            this.error$.next('Failed to verify flight readiness. System might be offline.');
+            return of(null);
+          })
         );
-      })
+      }),
+      startWith(null as ReadinessCheck | null)
     );
 
-    this.vm$ = combineLatest([flights$, data$, readinessResult$, this.error$]).pipe(
-      map(([flights, [availableCrew, allAircraft], readinessResult, error]) => ({
+    this.vm$ = combineLatest([
+      flights$,
+      data$,
+      readinessResult$,
+      this.error$.pipe(startWith('')),
+      this.checking$
+    ]).pipe(
+      map(([flights, [availableCrew, allAircraft], readinessResult, error, checking]) => ({
         flights,
         availableCrew,
         allAircraft,
         readinessResult,
         loading: false,
+        checking,
         error
       })),
       startWith({
@@ -87,12 +116,22 @@ export class ReadinessCheckComponent implements OnInit {
         allAircraft: [],
         readinessResult: null,
         loading: true,
+        checking: false,
         error: ''
       })
     );
   }
 
-  ngOnInit() { }
+  ngOnInit() {
+    this.readinessForm.get('flightId')?.valueChanges.subscribe(value => {
+      console.log('Readiness: Flight selection changed to:', value);
+      if (value) {
+        this.checkReadiness();
+      } else {
+        this.checkTrigger$.next(null);
+      }
+    });
+  }
 
   initializeForm() {
     this.readinessForm = this.fb.group({
@@ -101,32 +140,10 @@ export class ReadinessCheckComponent implements OnInit {
   }
 
   checkReadiness() {
-    if (this.readinessForm.invalid) return;
     this.error$.next('');
     const flightId = Number(this.readinessForm.get('flightId')?.value);
+    if (!flightId) return;
     this.checkTrigger$.next(flightId);
-  }
-
-  assignAircraft() {
-    const flightId = Number(this.readinessForm.get('flightId')?.value);
-    if (!this.selectedAircraftId || !flightId) return;
-
-    this.assigning = true;
-    this.error$.next('');
-    this.flightService.assignAircraft(flightId, this.selectedAircraftId).subscribe({
-      next: () => {
-        this.assigning = false;
-        this.selectedAircraftId = null;
-        this.assignTrigger$.next();
-        this.flightsRefresh$.next();
-        this.checkReadiness();
-      },
-      error: (err) => {
-        console.error('Aircraft assignment failed:', err);
-        this.error$.next('Failed to assign aircraft: ' + (err?.error?.message || err?.message || 'Unknown error'));
-        this.assigning = false;
-      }
-    });
   }
 
   toggleCrewSelection(crewId: number) {
@@ -143,27 +160,31 @@ export class ReadinessCheckComponent implements OnInit {
     if (this.selectedCrewIds.length === 0 || !flightId) return;
 
     this.assigning = true;
-    let completed = 0;
-    this.selectedCrewIds.forEach(crewId => {
-      this.crewService.assignCrewToFlight(crewId, flightId).subscribe({
-        next: () => {
-          completed++;
-          if (completed === this.selectedCrewIds.length) {
-            this.assigning = false;
-            this.selectedCrewIds = [];
-            this.assignTrigger$.next();
-            this.checkReadiness();
-          }
-        },
-        error: () => {
-          completed++;
-          if (completed === this.selectedCrewIds.length) {
-            this.assigning = false;
-            this.assignTrigger$.next();
-            this.checkReadiness();
-          }
-        }
-      });
+    this.error$.next('');
+
+    // Assign all selected crew members sequentially or in parallel
+    const assignments = this.selectedCrewIds.map(crewId =>
+      this.crewService.assignCrewToFlight(crewId, flightId).pipe(
+        catchError(err => {
+          console.error(`Assignment failed for crew ${crewId}:`, err);
+          return of(null);
+        })
+      )
+    );
+
+    combineLatest(assignments).subscribe({
+      next: () => {
+        console.log('Readiness: All crew assignments processed');
+        this.assigning = false;
+        this.selectedCrewIds = [];
+        this.assignTrigger$.next(); // Trigger data refresh
+        this.checkReadiness(); // Re-verify flight status
+      },
+      error: (err) => {
+        console.error('Readiness: Critical assignment error', err);
+        this.error$.next('One or more crew assignments failed.');
+        this.assigning = false;
+      }
     });
   }
 }
