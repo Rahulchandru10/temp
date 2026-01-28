@@ -40,4 +40,9 @@ public class BookingController {
     public java.util.List<Booking> getBookings(@PathVariable Long passengerId) {
         return service.getBookingsByPassenger(passengerId);
     }
+
+    @org.springframework.web.bind.annotation.DeleteMapping("/{bookingId}")
+    public void cancel(@PathVariable Long bookingId) {
+        service.cancelBooking(bookingId);
+    }
 }

@@ -34,6 +34,17 @@ public class BookingService {
         Flight flight = flightRepo.findById(request.getFlightId())
                 .orElseThrow(() -> new RuntimeException("Flight not found"));
 
+        // Seat Availability Validation
+        int capacity = flight.getAircraft() != null ? flight.getAircraft().getCapacity() : 0;
+        int bookedSeats = bookingRepo.findByFlightId(flight.getId()).stream()
+                .filter(b -> !"CANCELLED".equals(b.getStatus()))
+                .mapToInt(Booking::getSeatsBooked)
+                .sum();
+
+        if (bookedSeats + request.getSeats() > capacity) {
+            throw new RuntimeException("Not enough seats available. Available seats: " + (capacity - bookedSeats));
+        }
+
         Passenger passenger;
         if (request.getUsername() != null && !request.getUsername().isEmpty()) {
             passenger = passengerRepo.findByUsername(request.getUsername())
@@ -45,7 +56,6 @@ public class BookingService {
                         return passengerRepo.save(p);
                     });
 
-            // Update passenger details if they changed during booking
             if (request.getName() != null && !request.getName().isEmpty()) {
                 passenger.setName(request.getName());
             }
@@ -96,5 +106,27 @@ public class BookingService {
 
     public java.util.List<Booking> getBookingsByPassenger(Long passengerId) {
         return bookingRepo.findByPassengerId(passengerId);
+    }
+
+    @org.springframework.transaction.annotation.Transactional
+    public void cancelBooking(Long bookingId) {
+        Booking booking = bookingRepo.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
+
+        if ("CANCELLED".equals(booking.getStatus())) {
+            throw new RuntimeException("Booking is already cancelled");
+        }
+
+        booking.setStatus("CANCELLED");
+        bookingRepo.save(booking);
+
+        // Update payment status if exists
+        paymentRepo.findAll().stream()
+                .filter(p -> p.getBooking() != null && p.getBooking().getId().equals(bookingId))
+                .findFirst()
+                .ifPresent(p -> {
+                    p.setStatus("REFUNDED");
+                    paymentRepo.save(p);
+                });
     }
 }

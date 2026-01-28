@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.demo.model.Aircraft;
 import com.example.demo.repository.AircraftRepository;
 
-
 @RestController
 @RequestMapping("/admin/aircraft")
 @CrossOrigin
@@ -43,7 +42,7 @@ public class AircraftController {
     @PutMapping("/{id}/status")
     @Transactional
     public Aircraft updateStatus(@PathVariable Long id,
-                                 @RequestParam String status) {
+            @RequestParam String status) {
 
         Aircraft a = repo.findById(id).orElseThrow();
         a.setStatus(status);
