@@ -8,7 +8,7 @@ import { Aircraft, AircraftRequest } from '../models/aircraft.model';
 export class AircraftService {
   private baseUrl = 'http://localhost:8080/admin/aircraft';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getAllAircraft(): Observable<Aircraft[]> {
     console.log('Calling getAllAircraft endpoint...');

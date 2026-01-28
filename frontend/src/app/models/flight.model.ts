@@ -8,6 +8,7 @@ export interface Flight {
   aircraftId: number;
   price: number;
   status: string;
+  availableSeats?: number;
 }
 
 export interface FlightRequest {

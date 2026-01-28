@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Flight, FlightRequest, FlightSearchParams } from '../models/flight.model';
+import { Aircraft } from '../models/aircraft.model';
 
 @Injectable({ providedIn: 'root' })
 export class FlightService {
@@ -31,6 +32,14 @@ export class FlightService {
       `${this.baseUrl}/admin/flights/${flightId}/assign-aircraft/${aircraftId}`,
       {}
     );
+  }
+
+  getAvailableAircraft(excludeFlightId?: number): Observable<Aircraft[]> {
+    let params = new HttpParams();
+    if (excludeFlightId) {
+      params = params.set('excludeFlightId', excludeFlightId.toString());
+    }
+    return this.http.get<Aircraft[]>(`${this.baseUrl}/admin/aircraft/available`, { params });
   }
 
   // Customer endpoints

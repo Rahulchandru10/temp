@@ -28,7 +28,13 @@
                 <div class="time" *ngIf="b.flight">{{ b.flight.departureTime | date: 'medium' }}</div>
                 <div class="seats">Seats: {{ b.seatsBooked }}</div>
               </div>
-              <div class="amount">Total: ${{ b.totalAmount }}</div>
+              <div class="booking-footer">
+                <div class="amount">Total: ${{ b.totalAmount }}</div>
+                <button class="btn-sm btn-outline-danger" *ngIf="b.status !== 'CANCELLED'" (click)="cancelBooking(b.id)"
+                  [disabled]="vm.localLoading">
+                  Cancel Ticket
+                </button>
+              </div>
             </div>
           </div>
           <div class="no-data" *ngIf="vm.myBookings.length === 0">

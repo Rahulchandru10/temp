@@ -40,11 +40,11 @@ export class FlightListComponent implements OnInit {
     // Set up aircraft observable
     this.aircraft$ = this.aircraftRefreshSubject.asObservable().pipe(
       switchMap(() => {
-        console.log('Loading aircraft for flight form...');
-        return this.aircraftService.getAllAircraft().pipe(
-          tap(data => console.log('Aircraft received for flight form:', data)),
+        console.log('Loading available aircraft for flight form...');
+        return this.flightService.getAvailableAircraft(this.editingId || undefined).pipe(
+          tap(data => console.log('Available aircraft received:', data)),
           catchError(err => {
-            console.error('Error loading aircraft for flight form:', err);
+            console.error('Error loading available aircraft:', err);
             return of([]);
           })
         );
@@ -116,8 +116,8 @@ export class FlightListComponent implements OnInit {
           this.loadFlights();
           this.closeForm();
         },
-        error: () => {
-          this.error = 'Failed to update flight';
+        error: (err) => {
+          this.error = err.error?.message || err.error || 'Failed to update flight';
         }
       });
     } else {
@@ -126,16 +126,19 @@ export class FlightListComponent implements OnInit {
           this.loadFlights();
           this.closeForm();
         },
-        error: () => {
-          this.error = 'Failed to create flight';
+        error: (err) => {
+          this.error = err.error?.message || err.error || 'Failed to create flight';
         }
       });
     }
   }
 
-  edit(flight: Flight) {
+  edit(flight: any) {
     this.editingId = flight.id;
-    this.flightForm.patchValue(flight);
+    this.flightForm.patchValue({
+      ...flight,
+      aircraftId: flight.aircraft?.id
+    });
     this.showForm = true;
     this.loadAircraft();
   }

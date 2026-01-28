@@ -59,8 +59,13 @@
             <span>Arrive: {{ flight.arrivalTime | date: 'short' }}</span>
           </div>
           <div class="price">Price: <strong>${{ flight.price }}</strong></div>
+          <div class="availability" [class.low-stock]="flight.availableSeats && flight.availableSeats < 10">
+            Available Seats: <strong>{{ flight.availableSeats }}</strong>
+          </div>
         </div>
-        <button class="btn-primary" (click)="bookFlight(flight)">Book Now</button>
+        <button class="btn-primary" (click)="bookFlight(flight)" [disabled]="flight.availableSeats === 0">
+          {{ flight.availableSeats === 0 ? 'Sold Out' : 'Book Now' }}
+        </button>
       </div>
     </div>
 

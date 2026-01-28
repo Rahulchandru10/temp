@@ -240,4 +240,21 @@ export class BookingComponent implements OnInit {
     this.updateState({ step: 'list', bookingResult: null });
     this.error$.next('');
   }
+
+  cancelBooking(bookingId: number) {
+    if (confirm('Are you sure you want to cancel this booking?')) {
+      this.updateState({ localLoading: true });
+      this.bookingService.cancelBooking(bookingId).subscribe({
+        next: () => {
+          alert('Booking cancelled successfully! Your refund will be processed.');
+          this.refreshBookings$.next();
+          this.updateState({ localLoading: false });
+        },
+        error: (err) => {
+          this.error$.next(err?.error?.message || 'Failed to cancel booking.');
+          this.updateState({ localLoading: false });
+        }
+      });
+    }
+  }
 }

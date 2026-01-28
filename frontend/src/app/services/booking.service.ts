@@ -32,4 +32,8 @@ export class BookingService {
     getBookings(passengerId: number): Observable<Booking[]> {
         return this.http.get<Booking[]>(`${this.baseUrl}/${passengerId}`);
     }
+
+    cancelBooking(bookingId: number): Observable<void> {
+        return this.http.delete<void>(`${this.baseUrl}/${bookingId}`);
+    }
 }
