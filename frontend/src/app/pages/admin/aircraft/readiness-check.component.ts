@@ -1,14 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { ReadinessService } from '../../../services/readiness.service';
 import { FlightService } from '../../../services/flight.service';
-import { Flight } from '../../../models/flight.model';
-import { ReadinessCheck } from '../../../models/aircraft.model';
 import { CrewService } from '../../../services/crew.service';
-import { Crew } from '../../../models/crew.model';
 import { AircraftService } from '../../../services/aircraft.service';
+import { Flight } from '../../../models/flight.model';
+import { Crew } from '../../../models/crew.model';
 import { Aircraft } from '../../../models/aircraft.model';
+import { ReadinessCheck } from '../../../models/aircraft.model';
 import { Observable, BehaviorSubject, combineLatest, of } from 'rxjs';
 import { map, switchMap, startWith, catchError, tap } from 'rxjs/operators';
 
@@ -17,9 +17,16 @@ import { map, switchMap, startWith, catchError, tap } from 'rxjs/operators';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './readiness-check.component.html',
-  styleUrl: './aircraft.component.scss'
+  styleUrls: ['./aircraft.component.scss']
 })
 export class ReadinessCheckComponent implements OnInit {
+  readinessForm!: FormGroup;
+  selectedCrewIds: number[] = [];
+  assigning = false;
+
+  // Local copy of crew for duplicate role checking
+  availableCrew: Crew[] = [];
+
   private flightsRefresh$ = new BehaviorSubject<void>(undefined);
   private checkTrigger$ = new BehaviorSubject<number | null>(null);
   private assignTrigger$ = new BehaviorSubject<void>(undefined);
@@ -36,10 +43,6 @@ export class ReadinessCheckComponent implements OnInit {
     error: string;
   }>;
 
-  readinessForm!: FormGroup;
-  selectedCrewIds: number[] = [];
-  assigning = false;
-
   constructor(
     private fb: FormBuilder,
     private readinessService: ReadinessService,
@@ -49,15 +52,16 @@ export class ReadinessCheckComponent implements OnInit {
   ) {
     this.initializeForm();
 
+    // Flights observable
     const flights$ = this.flightsRefresh$.pipe(
       switchMap(() => this.flightService.getAllFlights().pipe(
         map(flights => flights.filter(f => f.status !== 'READY')),
         catchError(() => of([]))
       )),
-      startWith([] as Flight[]),
-      tap(f => console.log('Readiness: Flights loaded', f.length))
+      startWith([] as Flight[])
     );
 
+    // Crew + aircraft data observable
     const data$ = this.assignTrigger$.pipe(
       startWith(undefined),
       switchMap(() => combineLatest([
@@ -68,24 +72,17 @@ export class ReadinessCheckComponent implements OnInit {
         this.aircraftService.getAllAircraft().pipe(
           catchError(() => of([] as Aircraft[]))
         )
-      ])),
-      tap(() => console.log('Readiness: Crew/Aircraft data refreshed'))
+      ]))
     );
 
+    // Readiness result observable
     const readinessResult$ = this.checkTrigger$.pipe(
-      tap(id => {
-        console.log('Readiness: Check trigger fired for ID:', id);
-        if (id) this.checking$.next(true);
-      }),
+      tap(id => { if (id) this.checking$.next(true); }),
       switchMap(flightId => {
         if (!flightId) return of(null);
         return this.readinessService.checkFlightReadiness(flightId).pipe(
-          tap(res => {
-            console.log('Readiness: Service response', res);
-            this.checking$.next(false);
-          }),
+          tap(() => this.checking$.next(false)),
           catchError(err => {
-            console.error('Readiness: Service Error', err);
             this.checking$.next(false);
             this.error$.next('Failed to verify flight readiness. System might be offline.');
             return of(null);
@@ -95,6 +92,7 @@ export class ReadinessCheckComponent implements OnInit {
       startWith(null as ReadinessCheck | null)
     );
 
+    // Combine everything into vm$
     this.vm$ = combineLatest([
       flights$,
       data$,
@@ -124,8 +122,13 @@ export class ReadinessCheckComponent implements OnInit {
   }
 
   ngOnInit() {
+    // Keep local copy of availableCrew
+    this.vm$.subscribe(vm => {
+      this.availableCrew = vm.availableCrew;
+    });
+
+    // Trigger readiness check when flight changes
     this.readinessForm.get('flightId')?.valueChanges.subscribe(value => {
-      console.log('Readiness: Flight selection changed to:', value);
       if (value) {
         this.checkReadiness();
       } else {
@@ -136,7 +139,7 @@ export class ReadinessCheckComponent implements OnInit {
 
   initializeForm() {
     this.readinessForm = this.fb.group({
-      flightId: ['', Validators.required]
+      flightId: ['']
     });
   }
 
@@ -150,36 +153,42 @@ export class ReadinessCheckComponent implements OnInit {
   toggleCrewSelection(crewId: number) {
     const index = this.selectedCrewIds.indexOf(crewId);
     if (index > -1) {
-      this.selectedCrewIds.splice(index, 1);
+      this.selectedCrewIds.splice(index, 1); // uncheck
     } else {
-      this.selectedCrewIds.push(crewId);
+      this.selectedCrewIds.push(crewId);     // check
     }
   }
 
   assignSelectedCrew() {
     const flightId = Number(this.readinessForm.get('flightId')?.value);
-    if (this.selectedCrewIds.length === 0 || !flightId) return;
+    if (!flightId || this.selectedCrewIds.length === 0) return;
 
+    // ✅ Duplicate role check
+    const selectedRoles = this.selectedCrewIds.map(id => 
+      this.availableCrew.find(c => c.id === id)?.role
+    );
+    const uniqueRoles = new Set(selectedRoles);
+    if (uniqueRoles.size !== selectedRoles.length) {
+      this.error$.next("Cannot assign two crew members with the same role.");
+      return; // stop assignment
+    }
+
+    // Assign selected crew
     this.assigning = true;
     this.error$.next('');
-
-    // Assign all selected crew members sequentially or in parallel
     const assignments = this.selectedCrewIds.map(crewId =>
       this.crewService.assignCrewToFlight(crewId, flightId)
     );
 
     combineLatest(assignments).subscribe({
-      next: (results) => {
-        console.log('Readiness: All crew assignments processed');
+      next: () => {
         this.assigning = false;
         this.selectedCrewIds = [];
-        this.assignTrigger$.next();
-        this.checkReadiness();
+        this.assignTrigger$.next(); // refresh crew & aircraft
+        this.checkReadiness();      // update readiness
       },
       error: (err) => {
-        console.error('Readiness: Critical assignment error', err);
-        const serverMessage = err.error?.message || err.error || 'Duplicate role cannot be assigned.';
-        this.error$.next(serverMessage);
+        this.error$.next(err.error?.message || 'Error assigning crew.');
         this.assigning = false;
       }
     });
