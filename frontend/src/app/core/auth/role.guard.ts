@@ -8,7 +8,7 @@ export const RoleGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
 
   const expectedRole = route.data['role'];
   const userRole = auth.getRole();
-
+  console.log("inside roleguard");
   if (userRole !== expectedRole) {
     router.navigate(['/login']);
     return false;

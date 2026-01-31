@@ -5,7 +5,8 @@ import { BehaviorSubject, tap } from 'rxjs';
 import { LoginRequest, LoginResponse, AuthPayload, RegisterRequest } from '../../models/auth.model';
 
 @Injectable({ providedIn: 'root' })
-export class AuthService {
+export class 
+AuthService {
   private baseUrl = 'http://localhost:8080/auth';
   private currentUser = new BehaviorSubject<AuthPayload | null>(null);
   public currentUser$ = this.currentUser.asObservable();
