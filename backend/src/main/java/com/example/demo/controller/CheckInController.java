@@ -14,34 +14,86 @@ public class CheckInController {
 
     private final BookingRepository bookingRepo;
     private final BoardingPassRepository boardingPassRepo;
+    private final BookingPassengerRepository bookingPassengerRepo;
+    private final CheckInRepository checkInRepo;
 
     public CheckInController(
             BookingRepository bookingRepo,
-            BoardingPassRepository boardingPassRepo) {
+            BoardingPassRepository boardingPassRepo,
+            BookingPassengerRepository bookingPassengerRepo,
+            CheckInRepository checkInRepo) {
         this.bookingRepo = bookingRepo;
         this.boardingPassRepo = boardingPassRepo;
+        this.bookingPassengerRepo = bookingPassengerRepo;
+        this.checkInRepo = checkInRepo;
     }
 
     @PostMapping("/{bookingId}")
-    public BoardingPass checkIn(@PathVariable Long bookingId) {
-
+    public java.util.List<BoardingPass> checkIn(@PathVariable Long bookingId) {
         Booking booking = bookingRepo.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking not found"));
 
-        Passenger passenger = booking.getPassenger();
+        java.util.List<BoardingPass> passes = new java.util.ArrayList<>();
 
-        // Mark passenger as checked in
-        passenger.setCheckedIn(true);
+        // If it's a multi-passenger booking, check in everyone
+        if (!booking.getPassengers().isEmpty()) {
+            long currentCount = boardingPassRepo.countByBookingFlightId(booking.getFlight().getId());
+            int nextSeat = (int) currentCount + 1;
 
-        // Create boarding pass
-        BoardingPass bp = new BoardingPass();
-        bp.setBooking(booking);
-        bp.setSeatNumber("A" + (int) (Math.random() * 30));
-        bp.setGate("G" + (int) (Math.random() * 10));
-        bp.setBoardingTime(LocalDateTime.now().plusMinutes(30)); // 30 mins before now
-        bp.setStatus("ACTIVE");
-        bp.setBoardingNumber("BP-" + java.util.UUID.randomUUID());
+            for (BookingPassenger bp : booking.getPassengers()) {
+                if (!bp.isCheckedIn()) {
+                    passes.add(createBoardingPass(booking, bp, String.valueOf(nextSeat++)));
+                }
+            }
+        } else {
+            // Fallback for single primary passenger
+            Passenger p = booking.getPassenger();
+            if (p != null && !boardingPassRepo.existsByBookingId(bookingId)) {
+                long currentCount = boardingPassRepo.countByBookingFlightId(booking.getFlight().getId());
+                passes.add(createBoardingPass(booking, null, String.valueOf(currentCount + 1)));
+            }
+        }
+        return passes;
+    }
 
-        return boardingPassRepo.save(bp);
+    @PostMapping("/passenger/{passengerId}")
+    public BoardingPass checkInPassenger(@PathVariable Long passengerId) {
+        BookingPassenger bp = bookingPassengerRepo.findById(passengerId)
+                .orElseThrow(() -> new RuntimeException("Passenger not found"));
+
+        if (bp.isCheckedIn()) {
+            throw new RuntimeException("Passenger already checked in");
+        }
+
+        long currentCount = boardingPassRepo.countByBookingFlightId(bp.getBooking().getFlight().getId());
+        return createBoardingPass(bp.getBooking(), bp, String.valueOf(currentCount + 1));
+    }
+
+    private BoardingPass createBoardingPass(Booking booking, BookingPassenger bp, String seatNumber) {
+        BoardingPass pass = new BoardingPass();
+        pass.setBooking(booking);
+        pass.setBookingPassenger(bp);
+        pass.setSeatNumber(seatNumber);
+        pass.setGate(booking.getFlight().getGate());
+        pass.setBoardingTime(LocalDateTime.now().plusMinutes(30));
+        pass.setStatus("ACTIVE");
+        pass.setBoardingNumber("BP-" + java.util.UUID.randomUUID());
+
+        if (bp != null) {
+            bp.setCheckedIn(true);
+            bp.setSeatNumber(pass.getSeatNumber());
+            bookingPassengerRepo.save(bp);
+        }
+
+        BoardingPass savedPass = boardingPassRepo.save(pass);
+
+        // Update CheckIn table
+        CheckIn checkIn = new CheckIn();
+        checkIn.setBooking(booking);
+        checkIn.setSeatNumber(pass.getSeatNumber());
+        checkIn.setCheckedIn(true);
+        checkInRepo.save(checkIn);
+
+        return savedPass;
     }
 }

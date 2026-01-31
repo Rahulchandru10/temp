@@ -13,8 +13,11 @@ public class BoardingPass {
 
     private String boardingNumber; // unique boarding pass number
 
-    @OneToOne
+    @ManyToOne
     private Booking booking; // link to specific booking
+
+    @ManyToOne
+    private BookingPassenger bookingPassenger; // link to specific passenger in booking
 
     private String gate; // boarding gate
     private String seatNumber; // seat assigned during check-in
@@ -42,6 +45,14 @@ public class BoardingPass {
 
     public void setBooking(Booking booking) {
         this.booking = booking;
+    }
+
+    public BookingPassenger getBookingPassenger() {
+        return bookingPassenger;
+    }
+
+    public void setBookingPassenger(BookingPassenger bookingPassenger) {
+        this.bookingPassenger = bookingPassenger;
     }
 
     public String getGate() {

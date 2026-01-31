@@ -51,6 +51,7 @@ export class ReadinessCheckComponent implements OnInit {
 
     const flights$ = this.flightsRefresh$.pipe(
       switchMap(() => this.flightService.getAllFlights().pipe(
+        map(flights => flights.filter(f => f.status !== 'READY')),
         catchError(() => of([]))
       )),
       startWith([] as Flight[]),
@@ -164,25 +165,21 @@ export class ReadinessCheckComponent implements OnInit {
 
     // Assign all selected crew members sequentially or in parallel
     const assignments = this.selectedCrewIds.map(crewId =>
-      this.crewService.assignCrewToFlight(crewId, flightId).pipe(
-        catchError(err => {
-          console.error(`Assignment failed for crew ${crewId}:`, err);
-          return of(null);
-        })
-      )
+      this.crewService.assignCrewToFlight(crewId, flightId)
     );
 
     combineLatest(assignments).subscribe({
-      next: () => {
+      next: (results) => {
         console.log('Readiness: All crew assignments processed');
         this.assigning = false;
         this.selectedCrewIds = [];
-        this.assignTrigger$.next(); // Trigger data refresh
-        this.checkReadiness(); // Re-verify flight status
+        this.assignTrigger$.next();
+        this.checkReadiness();
       },
       error: (err) => {
         console.error('Readiness: Critical assignment error', err);
-        this.error$.next('One or more crew assignments failed.');
+        const serverMessage = err.error?.message || err.error || 'Duplicate role cannot be assigned.';
+        this.error$.next(serverMessage);
         this.assigning = false;
       }
     });

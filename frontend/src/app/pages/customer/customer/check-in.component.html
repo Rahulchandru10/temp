@@ -26,10 +26,7 @@
           </div>
         </div>
 
-        <div class="form-group">
-          <label>Preferred Seat Number</label>
-          <input formControlName="seatNumber" type="text" class="form-control" placeholder="e.g., 12A" />
-        </div>
+
 
         <div class="form-actions">
           <button type="submit" class="btn-primary" [disabled]="checkInForm.invalid || localLoading">
@@ -44,11 +41,16 @@
     <div class="result-card" *ngIf="vm.checkInResult">
       <div class="success">
         <h3>✅ Check-In Successful</h3>
-        <div class="boarding-info">
-          <p><strong>Seat:</strong> {{ vm.checkInResult.boardingPass.seatNumber }}</p>
-          <p><strong>Gate:</strong> {{ vm.checkInResult.boardingPass.gate }}</p>
-          <p><strong>Boarding Time:</strong> {{ vm.checkInResult.boardingPass.boardingTime | date:'short' }}</p>
-          <p><strong>Boarding Number:</strong> {{ vm.checkInResult.boardingPass.boardingNumber }}</p>
+        <div class="boarding-info-grid">
+          <div class="boarding-pass-item" *ngFor="let pass of vm.checkInResult.boardingPasses">
+            <h4>Boarding Pass - {{ pass.bookingPassenger?.name || 'Passenger' }}</h4>
+            <div class="pass-details">
+              <p><strong>Seat:</strong> {{ pass.seatNumber }}</p>
+              <p><strong>Gate:</strong> {{ pass.gate }}</p>
+              <p><strong>Boarding Time:</strong> {{ pass.boardingTime | date:'short' }}</p>
+              <p><strong>Boarding Number:</strong> {{ pass.boardingNumber }}</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

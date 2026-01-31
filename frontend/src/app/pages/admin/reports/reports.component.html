@@ -1,0 +1,75 @@
+<div class="container">
+    <div class="header-section">
+        <h2>Administrative Reports</h2>
+    </div>
+
+    <div class="reports-grid" *ngIf="summary$ | async as summary">
+        <div class="stat-card">
+            <div class="stat-icon">✈️</div>
+            <div class="stat-info">
+                <span class="stat-label">Total Flights</span>
+                <span class="stat-value">{{ summary.totalFlights }}</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">💰</div>
+            <div class="stat-info">
+                <span class="stat-label">Total Revenue</span>
+                <span class="stat-value">${{ summary.totalRevenue | number:'1.2-2' }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="details-section">
+        <div class="report-table-card">
+            <h3>Revenue by Flight</h3>
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Flight Number</th>
+                            <th>Route</th>
+                            <th>Seats Filled</th>
+                            <th>Revenue Generated</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of revenueReport$ | async">
+                            <td>{{ item.flightNumber }}</td>
+                            <td>{{ item.route }}</td>
+                            <td>{{ item.seatsFilled }}</td>
+                            <td>${{ item.revenue | number:'1.2-2' }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="report-table-card">
+            <h3>Flight Status Overview</h3>
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Flight No</th>
+                            <th>Route</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let flight of flightReport$ | async">
+                            <td>{{ flight.flightNumber }}</td>
+                            <td>{{ flight.source }} → {{ flight.destination }}</td>
+                            <td>
+                                <span class="badge" [class.ready]="flight.status === 'READY'"
+                                    [class.not-ready]="flight.status !== 'READY'">
+                                    {{ flight.status }}
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

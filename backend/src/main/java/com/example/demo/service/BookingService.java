@@ -77,7 +77,24 @@ public class BookingService {
         booking.setTotalAmount(request.getSeats() * flight.getPrice());
         booking.setStatus("PENDING");
 
-        return bookingRepo.save(booking);
+        Booking savedBooking = bookingRepo.save(booking);
+
+        // Save individual passenger details if provided
+        if (request.getPassengerDetails() != null) {
+            for (com.example.demo.dto.BookingRequest.PassengerDetail pd : request.getPassengerDetails()) {
+                com.example.demo.model.BookingPassenger bp = new com.example.demo.model.BookingPassenger();
+                bp.setName(pd.getName());
+                bp.setAge(pd.getAge());
+                bp.setGender(pd.getGender());
+                bp.setContact(pd.getContact());
+                bp.setPassportId(pd.getPassportId());
+                bp.setEmail(pd.getEmail());
+                bp.setBooking(savedBooking);
+                savedBooking.getPassengers().add(bp);
+            }
+        }
+
+        return bookingRepo.save(savedBooking);
     }
 
     // -------------------------------

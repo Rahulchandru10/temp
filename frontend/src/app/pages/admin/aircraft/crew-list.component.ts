@@ -29,6 +29,8 @@ export class CrewListComponent implements OnInit {
   crewForm!: FormGroup;
   showForm = false;
 
+  editingCrewId: number | null = null;
+
   constructor(
     private fb: FormBuilder,
     private crewService: CrewService,
@@ -85,14 +87,58 @@ export class CrewListComponent implements OnInit {
     this.refreshAction$.next();
   }
 
-  openForm() { this.showForm = true; this.crewForm.reset(); }
-  closeForm() { this.showForm = false; this.crewForm.reset(); }
+  openForm(member?: Crew) {
+    this.showForm = true;
+    if (member) {
+      this.editingCrewId = member.id;
+      this.crewForm.patchValue({
+        name: member.name,
+        role: member.role
+      });
+    } else {
+      this.editingCrewId = null;
+      this.crewForm.reset();
+    }
+  }
+
+  closeForm() {
+    this.showForm = false;
+    this.editingCrewId = null;
+    this.crewForm.reset();
+  }
 
   onSubmit() {
     if (this.crewForm.invalid) return;
-    this.crewService.addCrew(this.crewForm.value).subscribe({
-      next: () => { this.loadCrew(); this.closeForm(); },
-      error: () => { }
-    });
+
+    const request = this.crewForm.value;
+    if (this.editingCrewId) {
+      this.crewService.updateCrew(this.editingCrewId, request).subscribe({
+        next: () => { this.loadCrew(); this.closeForm(); },
+        error: () => { }
+      });
+    } else {
+      this.crewService.addCrew(request).subscribe({
+        next: () => { this.loadCrew(); this.closeForm(); },
+        error: () => { }
+      });
+    }
+  }
+
+  onDelete(id: number) {
+    if (confirm('Are you sure you want to delete this crew member?')) {
+      this.crewService.deleteCrew(id).subscribe({
+        next: () => this.loadCrew(),
+        error: () => { }
+      });
+    }
+  }
+
+  onUnassign(id: number) {
+    if (confirm('Unassign this crew member from their current flight?')) {
+      this.crewService.unassignCrew(id).subscribe({
+        next: () => this.loadCrew(),
+        error: () => { }
+      });
+    }
   }
 }

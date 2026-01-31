@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { BoardingPass } from '../models/passenger.model';
+import { BoardingPass } from '../models/booking.model';
 
 @Injectable({ providedIn: 'root' })
 export class BoardingPassService {
@@ -9,7 +9,7 @@ export class BoardingPassService {
 
   constructor(private http: HttpClient) { }
 
-  getBoardingPass(bookingId: number): Observable<BoardingPass> {
-    return this.http.get<BoardingPass>(`${this.baseUrl}/boardingpass/${bookingId}`);
+  getBoardingPasses(bookingId: number): Observable<BoardingPass[]> {
+    return this.http.get<BoardingPass[]>(`${this.baseUrl}/boardingpass/${bookingId}`);
   }
 }

@@ -9,7 +9,7 @@
   <!-- Form -->
   <div class="form-section" *ngIf="showForm">
     <div class="form-card">
-      <h3>Add New Crew Member</h3>
+      <h3>{{ editingCrewId ? 'Edit' : 'Add New' }} Crew Member</h3>
       <form [formGroup]="crewForm" (ngSubmit)="onSubmit()">
         <div class="form-group">
           <label>Name</label>
@@ -26,7 +26,9 @@
           </select>
         </div>
         <div class="form-actions">
-          <button type="submit" class="btn-primary" [disabled]="crewForm.invalid">Add Crew</button>
+          <button type="submit" class="btn-primary" [disabled]="crewForm.invalid">
+            {{ editingCrewId ? 'Update' : 'Add' }} Crew
+          </button>
           <button type="button" class="btn-secondary" (click)="closeForm()">Cancel</button>
         </div>
       </form>
@@ -56,12 +58,19 @@
                 <tr>
                   <th>Name</th>
                   <th>Role</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 <tr *ngFor="let member of vm.availableCrew">
                   <td>{{ member.name }}</td>
                   <td>{{ member.role }}</td>
+                  <td>
+                    <div class="action-buttons">
+                      <button class="btn-icon edit" (click)="openForm(member)" title="Edit">✏️</button>
+                      <button class="btn-icon delete" (click)="onDelete(member.id)" title="Delete">🗑️</button>
+                    </div>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -81,12 +90,20 @@
                 <tr>
                   <th>Name</th>
                   <th>Role</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 <tr *ngFor="let member of vm.assignedCrew">
                   <td>{{ member.name }}</td>
                   <td>{{ member.role }}</td>
+                  <td>
+                    <div class="action-buttons">
+                      <button class="btn-icon unassign" (click)="onUnassign(member.id)" title="Unassign">📤</button>
+                      <button class="btn-icon edit" (click)="openForm(member)" title="Edit">✏️</button>
+                      <button class="btn-icon delete" (click)="onDelete(member.id)" title="Delete">🗑️</button>
+                    </div>
+                  </td>
                 </tr>
               </tbody>
             </table>

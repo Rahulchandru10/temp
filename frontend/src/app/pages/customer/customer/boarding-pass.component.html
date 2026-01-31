@@ -7,8 +7,8 @@
     <div class="error-alert" *ngIf="vm.error" style="margin-bottom: 20px;">{{ vm.error }}</div>
 
     <!-- User's Confirmed Flights -->
-    <div class="form-card" *ngIf="vm.confirmedBookings.length > 0 && !vm.boardingPass">
-      <h3>Select a flight to view pass:</h3>
+    <div class="form-card" *ngIf="vm.confirmedBookings.length > 0 && !vm.boardingPass && !vm.boardingPasses">
+      <h3>Select a flight to view passes:</h3>
       <div class="bookings-grid">
         <div class="booking-card" *ngFor="let b of vm.confirmedBookings">
           <div class="booking-header">
@@ -19,63 +19,66 @@
             <div class="route"><strong>{{ b.flight.source }}</strong> → <strong>{{ b.flight.destination }}</strong>
             </div>
             <div class="time">{{ b.flight.departureTime | date: 'short' }}</div>
+            <div class="seats">Travelers: {{ b.seatsBooked }}</div>
           </div>
-          <button class="btn-primary" (click)="getBoardingPass(b)">View Boarding Pass</button>
+          <button class="btn-primary" (click)="getBoardingPasses(b)">View Boarding Passes</button>
         </div>
       </div>
     </div>
 
-
-    <!-- Boarding Pass Display -->
-    <div class="boarding-pass-card" *ngIf="vm.boardingPass">
-      <div class="pass-header">
-        <h3>✈️ DIGITAL BOARDING PASS</h3>
+    <!-- Multiple Boarding Passes Display -->
+    <div class="boarding-passes-container" *ngIf="vm.boardingPasses">
+      <div class="card-header">
+        <h3>✈️ DIGITAL BOARDING PASSES</h3>
         <button class="btn-close" (click)="resetBoardingPass()" style="float: right; color: white;">✕</button>
       </div>
-      <div class="pass-content">
-        <div class="pass-row">
-          <div class="pass-field">
-            <span class="label">PASSENGER ID</span>
-            <span class="value">#{{ vm.passengerId }}</span>
+
+      <div class="passes-grid">
+        <div class="boarding-pass-card" *ngFor="let pass of vm.boardingPasses">
+          <div class="pass-header">
+            <h4>{{ pass.bookingPassenger?.name || pass.booking.passenger.name }}</h4>
+            <span class="pass-id">{{ pass.boardingNumber }}</span>
           </div>
-          <div class="pass-field">
-            <span class="label">FLIGHT NUMBER</span>
-            <span class="value">{{ boardingPassForm.get('flightNumber')?.value }}</span>
+          <div class="pass-content">
+            <div class="pass-row">
+              <div class="pass-field">
+                <span class="label">FLIGHT</span>
+                <span class="value">{{ pass.booking.flight.flightNumber }}</span>
+              </div>
+              <div class="pass-field">
+                <span class="label">SEAT</span>
+                <span class="value">{{ pass.seatNumber }}</span>
+              </div>
+            </div>
+            <div class="pass-row">
+              <div class="pass-field">
+                <span class="label">GATE</span>
+                <span class="value">{{ pass.gate }}</span>
+              </div>
+              <div class="pass-field">
+                <span class="label">TIME</span>
+                <span class="value">{{ pass.boardingTime | date: 'shortTime' }}</span>
+              </div>
+            </div>
+            <div class="pass-barcode">
+              {{ pass.boardingNumber }}
+            </div>
           </div>
-        </div>
-        <div class="pass-row">
-          <div class="pass-field">
-            <span class="label">GATE</span>
-            <span class="value">{{ vm.boardingPass.gate }}</span>
+          <div class="pass-actions">
+            <button class="btn-primary btn-sm" onclick="window.print()">Save to Device</button>
           </div>
-          <div class="pass-field">
-            <span class="label">SEAT</span>
-            <span class="value">{{ vm.boardingPass.seatNumber }}</span>
-          </div>
-        </div>
-        <div class="pass-row">
-          <div class="pass-field">
-            <span class="label">STATUS</span>
-            <span class="value">{{ vm.boardingPass.status }}</span>
-          </div>
-          <div class="pass-field">
-            <span class="label">BOARDING TIME</span>
-            <span class="value">{{ vm.boardingPass.boardingTime | date: 'shortTime' }}</span>
-          </div>
-        </div>
-        <div class="pass-barcode">
-          {{ vm.boardingPass.boardingNumber }}
         </div>
       </div>
-      <button class="btn-primary" (click)="downloadPass()">Save to Device</button>
-      <button class="btn-secondary" (click)="resetBoardingPass()">Fetch for another flight</button>
+      <button class="btn-secondary" (click)="resetBoardingPass()" style="margin-top: 20px; width: 100%;">Fetch for
+        another flight</button>
     </div>
 
     <div class="loading" *ngIf="!vm.passengerId && vm.loading">
       Authenticating travel credentials...
     </div>
 
-    <div class="no-data" *ngIf="!vm.loading && vm.confirmedBookings.length === 0 && !vm.boardingPass">
+    <div class="no-data"
+      *ngIf="!vm.loading && vm.confirmedBookings.length === 0 && !vm.boardingPass && !vm.boardingPasses">
       No confirmed bookings found. Please book and pay for a flight first!
     </div>
   </ng-container>

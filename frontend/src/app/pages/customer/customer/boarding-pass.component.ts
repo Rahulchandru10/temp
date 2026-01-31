@@ -5,8 +5,8 @@ import { BoardingPassService } from '../../../services/boarding-pass.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { PassengerService } from '../../../services/passenger.service';
 import { BookingService } from '../../../services/booking.service';
-import { BoardingPass, Passenger } from '../../../models/passenger.model';
-import { Booking } from '../../../models/booking.model';
+import { Passenger } from '../../../models/passenger.model';
+import { Booking, BoardingPass } from '../../../models/booking.model';
 import { Observable, BehaviorSubject, combineLatest, of } from 'rxjs';
 import { switchMap, map, startWith, catchError, filter, shareReplay, distinctUntilChanged } from 'rxjs/operators';
 
@@ -29,9 +29,11 @@ export class BoardingPassComponent implements OnInit {
     loading: boolean;
     error: string;
     boardingPass: BoardingPass | null;
+    boardingPasses: BoardingPass[] | null;
   }>;
 
   private boardingPass$ = new BehaviorSubject<BoardingPass | null>(null);
+  private boardingPasses$ = new BehaviorSubject<BoardingPass[] | null>(null);
   private error$ = new BehaviorSubject<string>('');
 
   constructor(
@@ -62,20 +64,22 @@ export class BoardingPassComponent implements OnInit {
       startWith([])
     );
 
-    this.vm$ = combineLatest([this.passengerProfile$, this.boardingPass$, this.error$, bookings$]).pipe(
-      map(([passenger, boardingPass, error, confirmedBookings]) => ({
+    this.vm$ = combineLatest([this.passengerProfile$, this.boardingPass$, this.boardingPasses$, this.error$, bookings$]).pipe(
+      map(([passenger, boardingPass, boardingPasses, error, confirmedBookings]) => ({
         passengerId: passenger ? passenger.id : null,
         confirmedBookings,
         loading: false,
         error,
-        boardingPass
+        boardingPass,
+        boardingPasses
       })),
       startWith({
         passengerId: null,
         confirmedBookings: [],
         loading: true,
         error: '',
-        boardingPass: null
+        boardingPass: null,
+        boardingPasses: null
       })
     );
   }
@@ -93,7 +97,7 @@ export class BoardingPassComponent implements OnInit {
     });
   }
 
-  getBoardingPass(booking?: Booking) {
+  getBoardingPasses(booking?: Booking) {
     if (!booking) return;
 
     this.boardingPassForm.patchValue({ flightNumber: booking.flight.flightNumber });
@@ -101,29 +105,26 @@ export class BoardingPassComponent implements OnInit {
     this.localLoading = true;
     this.error$.next('');
 
-    this.boardingPassService.getBoardingPass(booking.id).subscribe({
-      next: (result) => {
-        this.boardingPass$.next(result);
+    this.boardingPassService.getBoardingPasses(booking.id).subscribe({
+      next: (results) => {
+        this.boardingPasses$.next(results);
         this.localLoading = false;
-        if (!result) {
-          this.error$.next('Please do check-in to get boarding pass');
+        if (!results || results.length === 0) {
+          this.error$.next('Please do check-in to get boarding passes');
         }
       },
       error: (err) => {
         console.error('Boarding pass error:', err);
-        const msg = 'Please do check-in to get boarding pass';
+        const msg = 'Please do check-in to get boarding passes';
         this.error$.next(msg);
         this.localLoading = false;
       }
     });
   }
 
-  downloadPass() {
-    alert('Saving your digital boarding pass to Downloads...');
-  }
-
   resetBoardingPass() {
     this.boardingPass$.next(null);
+    this.boardingPasses$.next(null);
     this.error$.next('');
   }
 }

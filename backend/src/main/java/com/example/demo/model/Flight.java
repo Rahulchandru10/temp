@@ -24,8 +24,17 @@ public class Flight {
     private Aircraft aircraft;
 
     private String status = "NOT READY";
+    private String gate = "G1"; // Default gate
 
     public Flight() {
+    }
+
+    public String getGate() {
+        return gate;
+    }
+
+    public void setGate(String gate) {
+        this.gate = gate;
     }
 
     public String getStatus() {

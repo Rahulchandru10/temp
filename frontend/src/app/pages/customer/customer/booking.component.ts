@@ -144,13 +144,50 @@ export class BookingComponent implements OnInit {
       flightId: ['', Validators.required],
       seats: [1, [Validators.required, Validators.min(1)]],
       name: ['', Validators.required],
-      email: ['', [Validators.required, Validators.email]]
+      email: ['', [Validators.required, Validators.email]],
+      passengerDetails: this.fb.array([])
     });
 
     this.paymentForm = this.fb.group({
       paymentMode: ['CREDIT_CARD', Validators.required],
       amount: ['', [Validators.required, Validators.min(0)]]
     });
+
+    // Add initial passenger
+    this.addPassenger();
+
+    // Rebuild passengers array when seats count changes
+    this.bookingForm.get('seats')?.valueChanges.subscribe(val => {
+      const seats = parseInt(val, 10);
+      if (isNaN(seats) || seats < 1) return;
+
+      const currentCount = this.passengers.length;
+      if (seats > currentCount) {
+        for (let i = currentCount; i < seats; i++) {
+          this.addPassenger();
+        }
+      } else if (seats < currentCount) {
+        for (let i = currentCount; i > seats; i--) {
+          this.passengers.removeAt(i - 1);
+        }
+      }
+    });
+  }
+
+  get passengers() {
+    return this.bookingForm.get('passengerDetails') as any;
+  }
+
+  addPassenger() {
+    const passengerGroup = this.fb.group({
+      name: ['', Validators.required],
+      age: ['', [Validators.required, Validators.min(0)]],
+      gender: ['', Validators.required],
+      contact: ['', Validators.required],
+      passportId: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]]
+    });
+    this.passengers.push(passengerGroup);
   }
 
   public updateState(partial: Partial<BookingState>) {
@@ -177,7 +214,8 @@ export class BookingComponent implements OnInit {
 
       const booking: BookingRequest = {
         ...this.bookingForm.value,
-        username: user.username
+        username: user.username,
+        passengerDetails: this.bookingForm.value.passengerDetails
       };
 
       this.bookingService.bookFlight(booking).subscribe({

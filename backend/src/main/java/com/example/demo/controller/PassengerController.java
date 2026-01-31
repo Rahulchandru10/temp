@@ -38,15 +38,15 @@ public class PassengerController {
     public java.util.Map<String, Object> checkIn(
             @RequestParam Long bookingId,
             @RequestParam String seat) {
-        BoardingPass pass = service.checkIn(bookingId, seat);
+        java.util.List<BoardingPass> passes = service.checkIn(bookingId, seat);
         java.util.Map<String, Object> response = new java.util.HashMap<>();
         response.put("success", true);
-        response.put("boardingPass", pass);
+        response.put("boardingPasses", passes);
         return response;
     }
 
     @GetMapping("/boardingpass/{bookingId}")
-    public BoardingPass getBoardingPass(@PathVariable Long bookingId) {
+    public java.util.List<BoardingPass> getBoardingPass(@PathVariable Long bookingId) {
         return service.getBoardingPassByBookingId(bookingId);
     }
 }

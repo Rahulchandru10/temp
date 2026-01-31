@@ -1,4 +1,5 @@
 package com.example.demo.model;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -9,13 +10,14 @@ public class CheckIn {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
+    @ManyToOne
     private Booking booking;
 
     private String seatNumber;
     private boolean checkedIn;
 
-    public CheckIn() {}
+    public CheckIn() {
+    }
 
     public Long getId() {
         return id;

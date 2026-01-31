@@ -18,6 +18,9 @@
       <button class="nav-item" [class.active]="activeTab === 'readiness'" (click)="setActiveTab('readiness')">
         <span class="icon">✅</span> Readiness
       </button>
+      <button class="nav-item" [class.active]="activeTab === 'reports'" (click)="setActiveTab('reports')">
+        <span class="icon">📊</span> Reports
+      </button>
     </nav>
 
     <button class="logout-btn" (click)="logout()">
@@ -43,6 +46,9 @@
       </div>
       <div *ngIf="activeTab === 'readiness'">
         <app-readiness-check></app-readiness-check>
+      </div>
+      <div *ngIf="activeTab === 'reports'">
+        <app-reports></app-reports>
       </div>
     </div>
   </main>

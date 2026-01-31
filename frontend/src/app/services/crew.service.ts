@@ -27,4 +27,12 @@ export class CrewService {
   unassignCrew(crewId: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/unassign/${crewId}`);
   }
+
+  updateCrew(id: number, crew: CrewRequest): Observable<Crew> {
+    return this.http.put<Crew>(`${this.baseUrl}/${id}`, crew);
+  }
+
+  deleteCrew(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
 }

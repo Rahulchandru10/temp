@@ -18,10 +18,6 @@ public class Passenger {
 
     private String name;
 
-    private boolean checkedIn;
-
-    private String seatNumber;
-
     public Passenger() {
     }
 
@@ -51,21 +47,5 @@ public class Passenger {
 
     public void setEmail(String email) {
         this.email = email;
-    }
-
-    public boolean isCheckedIn() {
-        return checkedIn;
-    }
-
-    public void setCheckedIn(boolean checkedIn) {
-        this.checkedIn = checkedIn;
-    }
-
-    public String getSeatNumber() {
-        return seatNumber;
-    }
-
-    public void setSeatNumber(String seatNumber) {
-        this.seatNumber = seatNumber;
     }
 }

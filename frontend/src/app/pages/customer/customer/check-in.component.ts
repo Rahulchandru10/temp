@@ -6,8 +6,8 @@ import { BookingService } from '../../../services/booking.service';
 import { FlightService } from '../../../services/flight.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { Flight } from '../../../models/flight.model';
-import { Booking } from '../../../models/booking.model';
-import { CheckInResponse, Passenger } from '../../../models/passenger.model';
+import { Booking, CheckInResponse } from '../../../models/booking.model';
+import { Passenger } from '../../../models/passenger.model';
 import { Observable, BehaviorSubject, combineLatest, of } from 'rxjs';
 import { switchMap, map, catchError, shareReplay, tap, filter, distinctUntilChanged, startWith } from 'rxjs/operators';
 
@@ -89,8 +89,7 @@ export class CheckInComponent implements OnInit {
   initializeForm() {
     this.checkInForm = this.fb.group({
       passengerId: ['', Validators.required],
-      bookingId: ['', Validators.required],
-      seatNumber: ['', Validators.required]
+      bookingId: ['', Validators.required]
     });
   }
 
@@ -102,9 +101,9 @@ export class CheckInComponent implements OnInit {
 
     this.localLoading = true;
     this.error$.next('');
-    const { bookingId, seatNumber } = this.checkInForm.value;
+    const { bookingId } = this.checkInForm.value;
 
-    this.passengerService.checkInPassenger(bookingId, seatNumber).subscribe({
+    this.passengerService.checkInPassenger(bookingId, '').subscribe({
       next: (result) => {
         this.checkInResult$.next(result);
         this.localLoading = false;

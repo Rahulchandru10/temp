@@ -6,11 +6,12 @@ import { FlightListComponent } from '../aircraft/flight-list.component';
 import { AircraftListComponent } from '../aircraft/aircraft-list.component';
 import { CrewListComponent } from '../aircraft/crew-list.component';
 import { ReadinessCheckComponent } from '../aircraft/readiness-check.component';
+import { ReportsComponent } from '../reports/reports.component';
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, FlightListComponent, AircraftListComponent, CrewListComponent, ReadinessCheckComponent],
+  imports: [CommonModule, FlightListComponent, AircraftListComponent, CrewListComponent, ReadinessCheckComponent, ReportsComponent],
   templateUrl: './admin-dashboard.component.html',
   styleUrl: './admin-dashboard.component.scss'
 })

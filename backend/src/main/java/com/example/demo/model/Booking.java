@@ -1,4 +1,5 @@
 package com.example.demo.model;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -21,7 +22,11 @@ public class Booking {
 
     private String status; // CONFIRMED, CANCELLED
 
-    public Booking() {}
+    @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true)
+    private java.util.List<BookingPassenger> passengers = new java.util.ArrayList<>();
+
+    public Booking() {
+    }
 
     public Long getId() {
         return id;
@@ -66,5 +71,12 @@ public class Booking {
     public void setStatus(String status) {
         this.status = status;
     }
-}
 
+    public java.util.List<BookingPassenger> getPassengers() {
+        return passengers;
+    }
+
+    public void setPassengers(java.util.List<BookingPassenger> passengers) {
+        this.passengers = passengers;
+    }
+}

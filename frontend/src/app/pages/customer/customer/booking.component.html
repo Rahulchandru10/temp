@@ -87,6 +87,46 @@
             </div>
           </div>
 
+          <div formArrayName="passengerDetails" class="traveler-details-section">
+            <div *ngFor="let passenger of passengers.controls; let i = index" [formGroupName]="i"
+              class="passenger-form-card">
+              <h4>Passenger {{ i + 1 }}</h4>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Full Name</label>
+                  <input formControlName="name" class="form-control" />
+                </div>
+                <div class="form-group">
+                  <label>Age</label>
+                  <input formControlName="age" type="number" class="form-control" />
+                </div>
+                <div class="form-group">
+                  <label>Gender</label>
+                  <select formControlName="gender" class="form-control">
+                    <option value="">Select</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Contact Number</label>
+                  <input formControlName="contact" class="form-control" />
+                </div>
+                <div class="form-group">
+                  <label>Passport ID</label>
+                  <input formControlName="passportId" class="form-control" />
+                </div>
+                <div class="form-group">
+                  <label>Traveler Email</label>
+                  <input formControlName="email" type="email" class="form-control" />
+                </div>
+              </div>
+            </div>
+          </div>
+
           <button type="submit" class="btn-primary btn-lg" [disabled]="bookingForm.invalid || vm.localLoading"
             style="width: 100%;">
             {{ vm.localLoading ? 'Generating Invoice...' : 'Proceed to Payment' }}

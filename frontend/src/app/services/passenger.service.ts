@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Passenger, PassengerRequest, CheckInRequest, CheckInResponse } from '../models/passenger.model';
+import { Passenger, PassengerRequest, CheckInRequest } from '../models/passenger.model';
+import { CheckInResponse } from '../models/booking.model';
 
 @Injectable({ providedIn: 'root' })
 export class PassengerService {
